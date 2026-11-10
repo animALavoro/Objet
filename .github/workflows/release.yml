@@ -1,0 +1,169 @@
+name: Release
+
+# By hand (Actions > Release > Run workflow). It builds from the private source repositories (token SOURCE_TOKEN,
+# contents read-only), for Windows and macOS (universal arm64 + x86_64, ad-hoc signature), and publishes:
+#  - what = all: one release of the suite, tag suite-<version>; marked latest (what the install line uses) only with
+#    "latest" ticked: otherwise it is tried first with "| bash -s -- all <version>", then Edit release > Set as latest;
+#  - what = pa / scene / monitor / master: a release of that plugin only, tag <what>-<version>, not marked latest.
+# This repository is public: GitHub Actions minutes are free here, macOS included.
+
+on:
+  workflow_dispatch:
+    inputs:
+      what:
+        description: "all = the suite; or one plugin only"
+        type: choice
+        options: [all, pa, scene, monitor, master]
+        default: all
+      version:
+        description: "Version, e.g. 2026.11.10 (suite) or v0.2.0 (one plugin)"
+        required: true
+      pa_ref:
+        description: "LB-Spanner: branch, tag or commit"
+        default: main
+      scene_ref:
+        description: "Objet-a-Scene: branch, tag or commit"
+        default: main
+      monitor_ref:
+        description: "Objet-a-Monitor: branch, tag or commit"
+        default: main
+      master_ref:
+        description: "Objet-a-Master: branch, tag or commit"
+        default: main
+      latest:
+        description: "Mark as latest (students get it). Off: published but reachable only with the version, to try it first"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.m.outputs.matrix }}
+      tag: ${{ steps.m.outputs.tag }}
+    steps:
+      - id: m
+        env:
+          WHAT: ${{ inputs.what }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          all='[
+            {"id":"pa","repo":"animALavoro/LB-Spanner","name":"Objet-Pa","target":"LBSpanner_VST3","tests":"lbs_tests","opts":"-DLBS_BUILD_TESTS=ON","bundle":"build/LBSpanner_artefacts/Release/VST3/LB Spanner.vst3","extra":"README.md README.it.md CHANGELOG.md"},
+            {"id":"scene","repo":"animALavoro/Objet-a-Scene","name":"Objet-a-Scene","target":"ObjetAScene_VST3","tests":"oas_tests","opts":"-DOAS_BUILD_TESTS=ON","bundle":"build/ObjetAScene_artefacts/Release/VST3/Objet a Scene.vst3","extra":"README.md README.it.md"},
+            {"id":"monitor","repo":"animALavoro/Objet-a-Monitor","name":"Objet-a-Monitor","target":"ObjetMonitor_VST3","tests":"lbm_tests","opts":"-DLBM_BUILD_TESTS=ON","bundle":"build/ObjetMonitor_artefacts/Release/VST3/Objet a Monitor.vst3","extra":"README.md README.it.md THIRD_PARTY_LICENSES"}
+          ]'
+          if [ "$WHAT" = all ]; then sel="$all"; else sel=$(echo "$all" | jq -c --arg w "$WHAT" '[.[] | select(.id == $w)]'); fi
+          echo "matrix=$(echo "$sel" | jq -c .)" >> "$GITHUB_OUTPUT"
+          if [ "$WHAT" = all ]; then echo "tag=suite-$VERSION" >> "$GITHUB_OUTPUT"; else echo "tag=$WHAT-$VERSION" >> "$GITHUB_OUTPUT"; fi
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.matrix != '[]'
+    strategy:
+      fail-fast: true
+      matrix:
+        plugin: ${{ fromJSON(needs.plan.outputs.matrix) }}
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.plugin.repo }}
+          ref: ${{ matrix.plugin.id == 'pa' && inputs.pa_ref || matrix.plugin.id == 'scene' && inputs.scene_ref || inputs.monitor_ref }}
+          token: ${{ secrets.SOURCE_TOKEN }}
+          persist-credentials: false
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: deps-${{ matrix.plugin.id }}-${{ runner.os }}-${{ hashFiles('CMakeLists.txt') }}
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        run: cmake -B build -A x64 ${{ matrix.plugin.opts }}
+
+      - name: Configure (macOS)
+        if: runner.os == 'macOS'
+        run: >
+          cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 ${{ matrix.plugin.opts }}
+
+      - name: Build
+        shell: bash
+        run: cmake --build build --config Release --parallel 4 --target ${{ matrix.plugin.target }} ${{ matrix.plugin.tests }}
+
+      - name: Engine tests
+        shell: bash
+        run: |
+          t=$(find build -type f \( -name '${{ matrix.plugin.tests }}' -o -name '${{ matrix.plugin.tests }}.exe' \) | head -1)
+          "$t"
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item -Recurse "${{ matrix.plugin.bundle }}" dist\
+          foreach ($f in "${{ matrix.plugin.extra }}".Split(' ')) { if (Test-Path $f) { Copy-Item $f dist\ } }
+          if (Test-Path LICENSE) { Copy-Item LICENSE dist\ }
+          Compress-Archive -Path dist\* -DestinationPath "${{ matrix.plugin.name }}-Windows.zip"
+
+      # ad-hoc signature (no Apple developer account): the zip holds only the bundle, the install line unpacks it as it is
+      - name: Sign and package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          b="${{ matrix.plugin.bundle }}"
+          lipo -info "$b/Contents/MacOS/"*
+          codesign --force --deep --sign - "$b"
+          codesign --verify --deep --strict --verbose=2 "$b"
+          ditto -c -k --keepParent "$b" "${{ matrix.plugin.name }}-macOS.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.plugin.name }}-${{ runner.os }}
+          path: ${{ matrix.plugin.name }}-*.zip
+
+  release:
+    needs: [plan, build]
+    if: always() && needs.plan.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        if: needs.build.result == 'success'
+        with:
+          path: dist
+          merge-multiple: true
+
+      - uses: actions/checkout@v4
+        if: inputs.what == 'all' || inputs.what == 'master'
+        with:
+          repository: animALavoro/Objet-a-Master
+          ref: ${{ inputs.master_ref }}
+          token: ${{ secrets.SOURCE_TOKEN }}
+          persist-credentials: false
+          path: master
+
+      - name: Objet a Master (script, nothing to build)
+        if: inputs.what == 'all' || inputs.what == 'master'
+        run: |
+          mkdir -p dist
+          (cd master && zip -q ../dist/Objet-a-Master.zip LB_Objet_Master.lua README.md README.it.md)
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.plan.outputs.tag }}
+          WHAT: ${{ inputs.what }}
+          LATEST: ${{ inputs.latest }}
+        run: |
+          cp install-mac.sh dist/
+          ls -l dist
+          flags=()
+          if [ "$WHAT" = all ] && [ "$LATEST" = true ]; then flags+=(--latest); else flags+=(--latest=false); fi
+          gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "$TAG" --notes-file NOTES.md "${flags[@]}"
