@@ -16,7 +16,7 @@ on:
         options: [all, pa, scene, monitor, master]
         default: all
       version:
-        description: "Version, e.g. 2026.11.10 (suite) or v0.2.0 (one plugin)"
+        description: "Version, e.g. 2026.11.10 (suite) or v0.2.0 (one plugin); any text when not publishing"
         required: true
       pa_ref:
         description: "LB-Spanner: branch, tag or commit"
@@ -30,6 +30,10 @@ on:
       master_ref:
         description: "Objet-a-Master: branch, tag or commit"
         default: main
+      publish:
+        description: "Publish a release. Off: build and test only (zips in the run's artifacts), e.g. to check a branch on macOS"
+        type: boolean
+        default: true
       latest:
         description: "Mark as latest (students get it). Off: published but reachable only with the version, to try it first"
         type: boolean
@@ -129,7 +133,7 @@ jobs:
 
   release:
     needs: [plan, build]
-    if: always() && needs.plan.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped')
+    if: always() && inputs.publish && needs.plan.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
