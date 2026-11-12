@@ -76,9 +76,9 @@ Su una traccia: **FX** → cerca *Objet*. Devono comparire **Objet Pa**, **Objet
 
 ## 5. La configurazione di REAPER del corso e le estensioni
 
-Il corso usa una configurazione di REAPER già preparata (impostazioni, scorciatoie, aspetto). Si importa una volta, dopo l'installazione:
+Il corso usa una configurazione di REAPER già preparata: gli archivi di ReaPack (anche quelli del Pie menu e di NVK), le scorciatoie da tastiera, il Pie menu e alcune impostazioni di progetto (i media importati vengono copiati nella cartella *Media* del progetto, salvataggi automatici). Si importa una volta, dopo l'installazione:
 
-1. Scarica il file di configurazione dalla [pagina delle release](https://github.com/animALavoro/Objet/releases/latest) (*Objet-REAPER-config.ReaperConfigZip*).
+1. Scarica il file di configurazione dalla [pagina delle release](https://github.com/animALavoro/Objet/releases/latest): *Cinema_Immersivo.ReaperConfigZip*.
 2. In REAPER: *Options > Preferences* (Windows) o *REAPER > Settings* (Mac) → **General** → **Import configuration…** → scegli il file.
 3. REAPER chiede di riavviarsi: conferma.
 
@@ -87,7 +87,7 @@ L'importazione sostituisce le impostazioni di REAPER che hai adesso: se usi già
 I template di progetto del corso te li dà il docente a parte.
 
 ### Le estensioni (ReaPack, SWS, Pie menu, NVK Search)
-L'installazione mette già in REAPER **ReaPack** (il gestore dei pacchetti di REAPER) e **ReaImGui** (serve a molti script). Il resto si installa da ReaPack, una volta:
+L'installazione mette già in REAPER **ReaPack** (il gestore dei pacchetti di REAPER) e **ReaImGui** (serve a molti script). Dopo aver importato la configurazione del corso, il resto si installa da ReaPack, una volta (gli archivi sono già impostati):
 
 1. In REAPER: *Extensions > ReaPack > Browse packages…*
 2. Cerca e installa (clic destro sul pacchetto → *Install*, poi **Apply**):
@@ -96,7 +96,9 @@ L'installazione mette già in REAPER **ReaPack** (il gestore dei pacchetti di RE
    - **nvk_SEARCH** (la ricerca veloce di azioni, FX, tracce e media).
 3. Riavvia REAPER.
 
-Se un pacchetto non compare nella ricerca, il suo archivio non è ancora tra quelli di ReaPack: *Extensions > ReaPack > Import repositories…* e incolla l'indirizzo che ti dà il docente.
+Scorciatoie del corso che usano questi pacchetti: **C** apre il Pie menu, **\*** del tastierino numerico apre nvk_SEARCH, **T** e **Tab** usano azioni di SWS. Finché il pacchetto non è installato, quella scorciatoia non fa nulla.
+
+Se un pacchetto non compare nella ricerca: *Extensions > ReaPack > Synchronize packages* (aggiorna gli elenchi) e cerca di nuovo.
 
 ## 6. Primi passi
 

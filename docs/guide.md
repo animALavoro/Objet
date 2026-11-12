@@ -76,9 +76,9 @@ On a track: **FX** → search *Objet*. **Objet Pa**, **Objet a Scene** and **Obj
 
 ## 5. The course's REAPER configuration and extensions
 
-The course uses a prepared REAPER configuration (settings, shortcuts, look). Import it once, after installing:
+The course uses a prepared REAPER configuration: ReaPack's repositories (the pie menu's and NVK's too), keyboard shortcuts, the pie menu and a few project settings (imported media are copied into the project's *Media* folder, autosave). Import it once, after installing:
 
-1. Download the configuration file from the [releases page](https://github.com/animALavoro/Objet/releases/latest) (*Objet-REAPER-config.ReaperConfigZip*).
+1. Download the configuration file from the [releases page](https://github.com/animALavoro/Objet/releases/latest): *Cinema_Immersivo.ReaperConfigZip*.
 2. In REAPER: *Options > Preferences* (Windows) or *REAPER > Settings* (Mac) → **General** → **Import configuration…** → choose the file.
 3. REAPER asks to restart: confirm.
 
@@ -87,7 +87,7 @@ Importing replaces your current REAPER settings: if you already use REAPER for o
 The course's project templates are given to you separately by the teacher.
 
 ### Extensions (ReaPack, SWS, pie menu, NVK Search)
-The installer already puts **ReaPack** (REAPER's package manager) and **ReaImGui** (needed by many scripts) in REAPER. The rest is installed from ReaPack, once:
+The installer already puts **ReaPack** (REAPER's package manager) and **ReaImGui** (needed by many scripts) in REAPER. After importing the course's configuration, install the rest from ReaPack, once (the repositories are already set):
 
 1. In REAPER: *Extensions > ReaPack > Browse packages…*
 2. Find and install (right-click the package → *Install*, then **Apply**):
@@ -96,7 +96,9 @@ The installer already puts **ReaPack** (REAPER's package manager) and **ReaImGui
    - **nvk_SEARCH** (fast search of actions, FX, tracks and media).
 3. Restart REAPER.
 
-If a package does not show up, its repository is not in ReaPack yet: *Extensions > ReaPack > Import repositories…* and paste the address given by the teacher.
+Course shortcuts that use these packages: **C** opens the pie menu, numeric keypad **\*** opens nvk_SEARCH, **T** and **Tab** use SWS actions. Until the package is installed, that shortcut does nothing.
+
+If a package does not show up: *Extensions > ReaPack > Synchronize packages* (refreshes the lists) and search again.
 
 ## 6. First steps
 
