@@ -48,6 +48,9 @@ jobs:
         run: |
           brew install --cask reaper
           brew install ffmpeg
+          # a virtual audio device: REAPER can play (the energy map needs audio going through the plugin)
+          brew install --cask blackhole-2ch || echo "blackhole not installed"
+          sudo killall coreaudiod || true
           ls /Applications/REAPER.app/Contents/MacOS/
 
       - name: Test video and overlay settings
@@ -74,6 +77,11 @@ jobs:
           screencapture -x shots/00-desktop.png || echo "screencapture failed"
           /Applications/REAPER.app/Contents/MacOS/REAPER -newinst "$TMPDIR/objet_overlay.rpp" "$GITHUB_WORKSPACE/tests/mac/overlay_test.lua" > reaper.out 2>&1 &
           RP=$!
+          # first start: REAPER asks for an audio device (modal): answer No (and any other first-run question)
+          ( for i in $(seq 1 90); do
+              osascript -e 'tell application "System Events" to tell process "REAPER" to click button "No" of front window' >> dialogs.txt 2>&1 || true
+              sleep 1
+            done ) &
           for n in 1 2 3 4 5 6; do
             t=0
             until [ -f "$TMPDIR/objet_phase_$n" ] || [ $t -ge 240 ]; do sleep 1; t=$((t+1)); done
@@ -94,6 +102,7 @@ jobs:
           cp "$TMPDIR/objet_overlay.txt" shots/ 2>/dev/null || true
           cp ~/Library/LBSpanner/*.log shots/ 2>/dev/null || true
           cp reaper.out shots/ || true
+          cp dialogs.txt shots/ 2>/dev/null || true
           cat shots/objet_overlay.txt || true
 
       - uses: actions/upload-artifact@v4
