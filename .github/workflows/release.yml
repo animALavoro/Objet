@@ -108,9 +108,9 @@ jobs:
           set +e; "$t" > tests.log 2>&1; code=$?; set -e
           cat tests.log
           if [ $code -ne 0 ]; then
-            if ! grep -q "FAIL" tests.log; then echo "::error::tests exited with $code"; exit $code; fi
-            if grep "FAIL" tests.log | grep -v "CPU" | grep -q .; then grep "FAIL" tests.log | grep -v "CPU" | while IFS= read -r l; do echo "::error::$l"; done; exit 1; fi
-            grep "FAIL" tests.log | while IFS= read -r l; do echo "::warning::CPU on a shared runner: $l"; done
+            if ! grep -q "^FAIL" tests.log; then echo "::error::tests exited with $code"; exit $code; fi
+            if grep "^FAIL" tests.log | grep -v "CPU" | grep -q .; then grep "^FAIL" tests.log | grep -v "CPU" | while IFS= read -r l; do echo "::error::$l"; done; exit 1; fi
+            grep "^FAIL" tests.log | while IFS= read -r l; do echo "::warning::CPU on a shared runner: $l"; done
           fi
 
       - name: Package (Windows)
