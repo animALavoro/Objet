@@ -36,7 +36,7 @@ local phases = {
       reaper.SetMediaTrackInfo_Value(reaper.GetMasterTrack(0), "I_NCHAN", 16)
       setByLabel("HOA 3 (AmbiX)")
     end },
-  { "hoa3-later", function() end },                 -- a few seconds more: the energy map (if audio runs)
+  { "hoa3-later", function() reaper.OnStopButton() reaper.SetEditCurPos(0, false, false) reaper.OnPlayButton() end },   -- play again: the energy map
   { "finder-in-front", function() end },            -- the workflow brings Finder to the front: the overlay must hide
   { "fullscreen", function() end },                 -- the workflow makes the video window full screen
 }
@@ -78,7 +78,7 @@ local function step()
     end
     phases[k][2]()
     reaper.SetOnlyTrackSelected(tr)
-    waitUntil = now + 4                              -- let the overlay settle (30 Hz updates)
+    waitUntil = now + (phases[k][1] == "hoa3-later" and 2.5 or 4)                              -- let the overlay settle (30 Hz updates)
     waiting = "settle"
   elseif waiting == "settle" and now >= waitUntil then
     local m = io.open(tmp .. "/objet_phase_" .. k, "w") m:write(phases[k][1]) m:close()
