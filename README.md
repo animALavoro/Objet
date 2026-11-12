@@ -33,10 +33,10 @@ From the latest release, unzip each `*-Windows.zip` and copy the `.vst3` folder 
 Objet Pa's file is `LB Spanner.vst3` (REAPER lists it as *Objet Pa*): the old name stays so that saved projects find it.
 
 ## Making a release (maintainer)
-*Actions > Release > Run workflow*: choose `all` (the suite) or one plugin, a version and, if needed, the branch or tag of each source repository. The workflow builds Windows and macOS from the private repositories, signs the macOS bundles ad hoc and publishes the release. Leave *latest* off to try it first:
+*Actions > Release > Run workflow*: choose `all` (the suite) or one plugin, a version and, if needed, the branch or tag of each source repository. The workflow builds Windows and macOS from the private repositories, signs the macOS bundles ad hoc and publishes the release. Leave *latest* off to try it first (it comes out as a pre-release, which the install line does not pick):
 
 ```
 curl -fsSL https://github.com/animALavoro/Objet/releases/download/suite-VERSION/install-mac.sh | bash -s -- all VERSION
 ```
 
-then *Edit release > Set as latest release*: from then on the install line above gives it to everyone. The source is read with the `SOURCE_TOKEN` secret (fine-grained token, contents read-only on the four source repositories, to renew before it expires).
+then *Edit release*: untick *Set as a pre-release*, tick *Set as the latest release*, *Update release*: from then on the install line above gives it to everyone. The source is read with the `SOURCE_TOKEN` secret (fine-grained token, contents read-only on the four source repositories, to renew before it expires).
