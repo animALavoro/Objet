@@ -210,6 +210,7 @@ jobs:
           LATEST: ${{ inputs.latest }}
         run: |
           cp install-mac.sh install-windows.ps1 dist/
+          cp kit/* dist/                 # the course's REAPER configuration
           ls -l dist
           flags=()
           # GitHub's latest is the newest release that is not a pre-release (make_latest=false is not enough):
