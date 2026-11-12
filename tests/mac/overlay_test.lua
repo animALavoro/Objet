@@ -57,11 +57,13 @@ local function start()
   reaper.TrackFX_Show(tr, fx, 2)                   -- no floating editor
   reaper.SetOnlyTrackSelected(tr)
   reaper.Main_OnCommand(50125, 0)                  -- Video: show video window
+  reaper.GetSet_LoopTimeRange(true, true, 0, 30, false)
+  reaper.GetSetRepeat(1)                           -- loop: the energy map needs audio all along
   reaper.OnPlayButton()
   log("audio running " .. tostring(reaper.Audio_IsRunning and reaper.Audio_IsRunning()) .. ", play state " .. reaper.GetPlayState())
 end
 
-local k, waitUntil, waiting = 0, reaper.time_precise() + 6, false
+local k, waitUntil, waiting = 0, reaper.time_precise() + 15, false   -- time for the first-run windows to be closed
 local function step()
   local now = reaper.time_precise()
   if not waiting and now >= waitUntil then
