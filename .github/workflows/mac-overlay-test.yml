@@ -1,0 +1,100 @@
+name: Mac overlay test
+
+# By hand: Objet Pa's video overlay in REAPER on a CI Mac. REAPER (evaluation) is installed, a project with a video
+# and Objet Pa is made by tests/mac/overlay_test.lua, and a screenshot is taken at each phase (artifact "overlay-shots").
+# Public repository: the minutes are free.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pa_ref:
+        description: "LB-Spanner: branch, tag or commit"
+        default: main
+
+jobs:
+  overlay:
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: animALavoro/LB-Spanner
+          ref: ${{ inputs.pa_ref }}
+          token: ${{ secrets.SOURCE_TOKEN }}
+          persist-credentials: false
+          path: src
+
+      - name: Cache JUCE
+        uses: actions/cache@v4
+        with:
+          path: src/build/_deps
+          key: deps-pa-overlay-${{ runner.os }}-${{ hashFiles('src/CMakeLists.txt') }}
+
+      - name: Build Objet Pa (arm64)
+        working-directory: src
+        run: |
+          cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DLBS_BUILD_TESTS=OFF
+          cmake --build build --parallel 4 --target LBSpanner_VST3
+          mkdir -p ~/Library/Audio/Plug-Ins/VST3
+          ditto "build/LBSpanner_artefacts/Release/VST3/LB Spanner.vst3" ~/Library/Audio/Plug-Ins/VST3/"LB Spanner.vst3"
+          codesign --force --deep --sign - ~/Library/Audio/Plug-Ins/VST3/"LB Spanner.vst3"
+
+      - name: REAPER and ffmpeg
+        run: |
+          brew install --cask reaper
+          brew install ffmpeg
+          ls /Applications/REAPER.app/Contents/MacOS/
+
+      - name: Test video and overlay settings
+        run: |
+          ffmpeg -loglevel error -f lavfi -i testsrc=size=1280x640:rate=25 -f lavfi -i sine=frequency=440:sample_rate=48000 \
+            -t 60 -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest "$TMPDIR/objet_test.mp4"
+          mkdir -p ~/Library/Application\ Support/LBSpanner
+          cat > ~/Library/Application\ Support/LBSpanner/LBSpanner.settings <<'XML'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <PROPERTIES>
+            <VALUE name="overlayEnabled" val="1"/>
+            <VALUE name="energyMap" val="1"/>
+            <VALUE name="diagnosticLogs" val="1"/>
+          </PROPERTIES>
+          XML
+          sed -i '' 's/^          //' ~/Library/Application\ Support/LBSpanner/LBSpanner.settings
+          cat ~/Library/Application\ Support/LBSpanner/LBSpanner.settings
+          system_profiler SPDisplaysDataType | grep -E "Resolution|Retina|Display Type" || true
+
+      - name: Run REAPER, screenshot each phase
+        run: |
+          mkdir -p shots
+          printf '<REAPER_PROJECT 0.1 "7.0" 0\n>\n' > "$TMPDIR/objet_overlay.rpp"
+          screencapture -x shots/00-desktop.png || echo "screencapture failed"
+          /Applications/REAPER.app/Contents/MacOS/REAPER -newinst "$TMPDIR/objet_overlay.rpp" "$GITHUB_WORKSPACE/tests/mac/overlay_test.lua" > reaper.out 2>&1 &
+          RP=$!
+          for n in 1 2 3 4 5 6; do
+            t=0
+            until [ -f "$TMPDIR/objet_phase_$n" ] || [ $t -ge 240 ]; do sleep 1; t=$((t+1)); done
+            [ -f "$TMPDIR/objet_phase_$n" ] || { echo "phase $n never came"; screencapture -x "shots/$n-timeout.png"; break; }
+            name=$(cat "$TMPDIR/objet_phase_$n")
+            if [ "$name" = "finder-in-front" ]; then osascript -e 'tell application "Finder" to activate'; sleep 2
+            elif [ "$name" = "fullscreen" ]; then
+              osascript -e 'tell application "REAPER" to activate'; sleep 1
+              osascript -e 'tell application "System Events" to tell process "REAPER" to set value of attribute "AXFullScreen" of (first window whose title contains "Video") to true' || echo "fullscreen via AX failed"
+              sleep 4
+            else osascript -e 'tell application "REAPER" to activate'; sleep 2; fi
+            screencapture -x "shots/$n-$name.png" || echo "screencapture failed"
+            osascript -e 'tell application "System Events" to get name of every window of process "REAPER"' > "shots/$n-windows.txt" 2>&1 || true
+            touch "$TMPDIR/objet_ack_$n"
+          done
+          t=0; while kill -0 $RP 2>/dev/null && [ $t -lt 30 ]; do sleep 1; t=$((t+1)); done
+          kill $RP 2>/dev/null || true
+          cp "$TMPDIR/objet_overlay.txt" shots/ 2>/dev/null || true
+          cp ~/Library/LBSpanner/*.log shots/ 2>/dev/null || true
+          cp reaper.out shots/ || true
+          cat shots/objet_overlay.txt || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: overlay-shots
+          path: shots
