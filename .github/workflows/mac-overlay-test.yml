@@ -98,7 +98,12 @@ jobs:
             if [ "$name" = "finder-in-front" ]; then osascript -e 'tell application "Finder" to activate'; sleep 2
             elif [ "$name" = "fullscreen" ]; then
               osascript -e 'tell application "REAPER" to activate'; sleep 1
-              osascript -e 'tell application "System Events" to tell process "REAPER" to set value of attribute "AXFullScreen" of (first window whose title contains "Video") to true' || echo "fullscreen via AX failed"
+              osascript -e 'tell application "System Events" to tell process "REAPER"
+                  perform action "AXRaise" of (first window whose name is "Video Window")
+                  set value of attribute "AXFullScreen" of (first window whose name is "Video Window") to true
+                end tell' || echo "fullscreen via AX failed"
+              sleep 2
+              osascript -e 'tell application "System Events" to keystroke "f" using {control down, command down}' || echo "ctrl-cmd-F failed"
               sleep 4
             else osascript -e 'tell application "REAPER" to activate'; sleep 2; fi
             screencapture -x "shots/$n-$name.png" || echo "screencapture failed"
