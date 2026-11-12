@@ -1,7 +1,7 @@
 #!/bin/bash
 # Objet suite - installer for macOS.
 #   curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash
-#   ... | bash -s -- pa            only Objet Pa (also: scene, monitor, master)
+#   ... | bash -s -- pa            only Objet Pa (also: scene, monitor, otio, ext = ReaPack + ReaImGui)
 #   ... | bash -s -- pa v0.2.0     a release of one plugin (tag pa-v0.2.0)
 # Downloads with curl (no quarantine flag), installs in the user's own folders: no administrator password.
 set -euo pipefail
@@ -10,13 +10,14 @@ REPO="animALavoro/Objet"
 WHAT="${1:-all}"
 VERSION="${2:-}"
 VST3="$HOME/Library/Audio/Plug-Ins/VST3"
-SCRIPTS="$HOME/Library/Application Support/REAPER/Scripts/Objet a Master"
+APPS="$HOME/Applications"
+USERPLUGINS="$HOME/Library/Application Support/REAPER/UserPlugins"
 
 [ "$(uname -s)" = "Darwin" ] || { echo "This installer is for macOS."; exit 1; }
 
 case "$WHAT" in
-  all|pa|scene|monitor|master) ;;
-  *) echo "Unknown plugin '$WHAT': use all, pa, scene, monitor or master."; exit 1 ;;
+  all|pa|scene|monitor|otio|ext) ;;
+  *) echo "Unknown part '$WHAT': use all, pa, scene, monitor, otio or ext."; exit 1 ;;
 esac
 
 if [ -n "$VERSION" ]; then
@@ -49,14 +50,30 @@ plugin() {
   echo "  installed in $VST3/$bundle"
 }
 
-master() {
-  echo "- Objet a Master (script)"
-  curl -fL --retry 3 --progress-bar -o "$TMP/master.zip" "$BASE/Objet-a-Master.zip" || { echo "  download failed: $BASE/Objet-a-Master.zip"; exit 1; }
-  mkdir -p "$SCRIPTS"
-  ditto -x -k "$TMP/master.zip" "$SCRIPTS"
-  xattr -dr com.apple.quarantine "$SCRIPTS" 2>/dev/null || true
-  echo "  installed in $SCRIPTS"
-  echo "  once: REAPER > Actions > Show action list > New action > Load ReaScript > LB_Objet_Master.lua (needs ReaImGui from ReaPack)"
+otio() {
+  echo "- OTIO to RPP (app)"
+  curl -fL --retry 3 --progress-bar -o "$TMP/otio.zip" "$BASE/OTIO-to-RPP-macOS.zip" || { echo "  download failed: $BASE/OTIO-to-RPP-macOS.zip"; exit 1; }
+  rm -rf "$TMP/o" && mkdir "$TMP/o"
+  ditto -x -k "$TMP/otio.zip" "$TMP/o"
+  mkdir -p "$APPS"
+  rm -rf "$APPS/OTIO to RPP.app"
+  ditto "$TMP/o/OTIO to RPP.app" "$APPS/OTIO to RPP.app"
+  xattr -dr com.apple.quarantine "$APPS/OTIO to RPP.app" 2>/dev/null || true
+  echo "  installed in $APPS/OTIO to RPP.app (Finder > Go > Home > Applications)"
+}
+
+# REAPER extensions from their own releases (not from this repository): ReaPack (packages: SWS, scripts) and ReaImGui
+ext() {
+  local arch; arch=$(uname -m); [ "$arch" = arm64 ] || arch=x86_64
+  mkdir -p "$USERPLUGINS"
+  for f in "cfillion/reapack:reaper_reapack-$arch.dylib" "cfillion/reaimgui:reaper_imgui-$arch.dylib"; do
+    local repo="${f%%:*}" file="${f#*:}"
+    echo "- ${file%%-*} ($arch)"
+    curl -fL --retry 3 --progress-bar -o "$USERPLUGINS/$file.part" "https://github.com/$repo/releases/latest/download/$file" \
+      && mv "$USERPLUGINS/$file.part" "$USERPLUGINS/$file" || { rm -f "$USERPLUGINS/$file.part"; echo "  download failed: $file"; exit 1; }
+    xattr -d com.apple.quarantine "$USERPLUGINS/$file" 2>/dev/null || true
+  done
+  echo "  installed in $USERPLUGINS (REAPER: Extensions > ReaPack)"
 }
 
 echo "Objet suite: installing from $BASE"
@@ -64,12 +81,14 @@ case "$WHAT" in
   all)     plugin Objet-Pa-macOS.zip "LB Spanner.vst3" "Objet Pa"
            plugin Objet-a-Scene-macOS.zip "Objet a Scene.vst3" "Objet a Scene"
            plugin Objet-a-Monitor-macOS.zip "Objet a Monitor.vst3" "Objet a Monitor"
-           master ;;
+           otio
+           ext ;;
   pa)      plugin Objet-Pa-macOS.zip "LB Spanner.vst3" "Objet Pa" ;;
   scene)   plugin Objet-a-Scene-macOS.zip "Objet a Scene.vst3" "Objet a Scene" ;;
   monitor) plugin Objet-a-Monitor-macOS.zip "Objet a Monitor.vst3" "Objet a Monitor" ;;
-  master)  master ;;
+  otio)    otio ;;
+  ext)     ext ;;
 esac
 
 echo
-echo "Done. Open REAPER: Preferences > Plug-ins > VST > Clear cache/re-scan."
+echo "Done. Open REAPER: REAPER > Settings > Plug-ins > VST > Clear cache/re-scan."
