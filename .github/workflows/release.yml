@@ -4,7 +4,8 @@ name: Release
 # contents read-only), for Windows and macOS (universal arm64 + x86_64, ad-hoc signature), and publishes:
 #  - what = all: one release of the suite, tag suite-<version>; marked latest (what the install line uses) only with
 #    "latest" ticked: otherwise it is tried first with "| bash -s -- all <version>", then Edit release > Set as latest;
-#  - what = pa / scene / monitor / master: a release of that plugin only, tag <what>-<version>, not marked latest.
+#  - what = pa / scene / monitor / otio: a release of that one only, tag <what>-<version>, not marked latest.
+# The suite: the three VST3 plugins and the OTIO -> RPP app (Windows .exe, macOS .app for Apple silicon).
 # This repository is public: GitHub Actions minutes are free here, macOS included.
 
 on:
@@ -13,7 +14,7 @@ on:
       what:
         description: "all = the suite; or one plugin only"
         type: choice
-        options: [all, pa, scene, monitor, master]
+        options: [all, pa, scene, monitor, otio]
         default: all
       version:
         description: "Version, e.g. 2026.11.10 (suite) or v0.2.0 (one plugin); any text when not publishing"
@@ -27,8 +28,8 @@ on:
       monitor_ref:
         description: "Objet-a-Monitor: branch, tag or commit"
         default: main
-      master_ref:
-        description: "Objet-a-Master: branch, tag or commit"
+      otio_ref:
+        description: "OTIO-to-RPP: branch, tag or commit"
         default: main
       publish:
         description: "Publish a release. Off: build and test only (zips in the run's artifacts), e.g. to check a branch on macOS"
@@ -138,33 +139,68 @@ jobs:
           name: ${{ matrix.plugin.name }}-${{ runner.os }}
           path: ${{ matrix.plugin.name }}-*.zip
 
+  # the OTIO -> RPP app (Python + Tkinter, frozen with PyInstaller): Windows one-file .exe, macOS .app (arm64, ad-hoc signed)
+  otio:
+    needs: plan
+    if: inputs.what == 'all' || inputs.what == 'otio'
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: animALavoro/OTIO-to-RPP
+          ref: ${{ inputs.otio_ref }}
+          token: ${{ secrets.SOURCE_TOKEN }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: PyInstaller and a test conversion
+        shell: bash
+        run: |
+          python -m pip install pyinstaller==6.22.3
+          python converter.py esempio.otio esempio.rpp
+          test -s esempio.rpp
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          python -m PyInstaller --noconfirm --onefile --windowed --name "OTIO to RPP" app.py
+          Compress-Archive -Path "dist/OTIO to RPP.exe" -DestinationPath OTIO-to-RPP-Windows.zip
+
+      - name: Build (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          python -m PyInstaller --noconfirm --windowed --name "OTIO to RPP" --osx-bundle-identifier com.lucabagetto.otio-to-rpp app.py
+          codesign --force --deep --sign - "dist/OTIO to RPP.app"
+          codesign --verify --deep --strict "dist/OTIO to RPP.app"
+          ditto -c -k --keepParent "dist/OTIO to RPP.app" OTIO-to-RPP-macOS.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OTIO-to-RPP-${{ runner.os }}
+          path: OTIO-to-RPP-*.zip
+
   release:
-    needs: [plan, build]
-    if: always() && inputs.publish && needs.plan.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped')
+    needs: [plan, build, otio]
+    if: >-
+      always() && inputs.publish && needs.plan.result == 'success'
+      && (needs.build.result == 'success' || needs.build.result == 'skipped')
+      && (needs.otio.result == 'success' || needs.otio.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/download-artifact@v4
-        if: needs.build.result == 'success'
         with:
           path: dist
           merge-multiple: true
-
-      - uses: actions/checkout@v4
-        if: inputs.what == 'all' || inputs.what == 'master'
-        with:
-          repository: animALavoro/Objet-a-Master
-          ref: ${{ inputs.master_ref }}
-          token: ${{ secrets.SOURCE_TOKEN }}
-          persist-credentials: false
-          path: master
-
-      - name: Objet a Master (script, nothing to build)
-        if: inputs.what == 'all' || inputs.what == 'master'
-        run: |
-          mkdir -p dist
-          (cd master && zip -q ../dist/Objet-a-Master.zip LB_Objet_Master.lua README.md README.it.md)
 
       - name: Publish
         env:
@@ -173,7 +209,7 @@ jobs:
           WHAT: ${{ inputs.what }}
           LATEST: ${{ inputs.latest }}
         run: |
-          cp install-mac.sh dist/
+          cp install-mac.sh install-windows.ps1 dist/
           ls -l dist
           flags=()
           # GitHub's latest is the newest release that is not a pre-release (make_latest=false is not enough):
