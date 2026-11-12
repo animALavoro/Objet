@@ -11,7 +11,7 @@ Chiudi REAPER, apri il Terminale (Applicazioni > Utility > Terminale), incolla q
 curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash
 ```
 
-Installa i tre plugin nella tua cartella VST3 (`~/Library/Audio/Plug-Ins/VST3`) e lo script Objet a Master nella cartella Scripts di REAPER. Nessuna password di amministratore; le copie vecchie vengono sostituite, quindi la stessa riga serve anche ad aggiornare. Poi apri REAPER: *Preferences > Plug-ins > VST > Clear cache/re-scan*.
+Installa i tre plugin nella tua cartella VST3 (`~/Library/Audio/Plug-Ins/VST3`) e lo script Objet a Master nella cartella Scripts di REAPER. Nessuna password di amministratore; le copie vecchie vengono sostituite, quindi la stessa riga serve anche ad aggiornare. Poi apri REAPER: *REAPER > Settings > Plug-ins > VST > Clear cache/re-scan*.
 
 - Un plugin solo: chiudi la riga con `bash -s -- pa` (oppure `scene`, `monitor`, `master`) invece di `bash`.
 - Una versione precisa: `bash -s -- all 2026.11.10`, oppure `bash -s -- pa v0.2.0` per la release di un plugin solo.
@@ -24,6 +24,8 @@ xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/"LB Spanner.vst3"
 ```
 
 (`Objet a Scene.vst3`, `Objet a Monitor.vst3` per gli altri).
+
+Se REAPER è già fermo all'avvio sul messaggio *"LB Spanner.vst3" Not Opened. Apple could not verify "LB Spanner.vst3" is free of malware…*, il messaggio torna a ogni **Done** e REAPER non si apre. Lascialo lì, lancia la riga qui sopra nel Terminale, poi premi **Done** una volta: REAPER si apre e carica il plugin.
 
 ## Installare su Windows
 Dall'ultima release, decomprimi ogni `*-Windows.zip` e copia la cartella `.vst3` in `C:\Program Files\Common Files\VST3\`. Per Objet a Master carica `LB_Objet_Master.lua` da `Objet-a-Master.zip` come sopra. Poi *Clear cache/re-scan* in REAPER.
