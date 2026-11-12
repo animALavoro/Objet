@@ -35,7 +35,7 @@ on:
         type: boolean
         default: true
       latest:
-        description: "Mark as latest (students get it). Off: published but reachable only with the version, to try it first"
+        description: "Mark as latest (students get it). Off: published as a pre-release, reachable only with the version, to try it first"
         type: boolean
         default: false
 
@@ -176,5 +176,7 @@ jobs:
           cp install-mac.sh dist/
           ls -l dist
           flags=()
-          if [ "$WHAT" = all ] && [ "$LATEST" = true ]; then flags+=(--latest); else flags+=(--latest=false); fi
+          # GitHub's latest is the newest release that is not a pre-release (make_latest=false is not enough):
+          # a release to try first is published as a pre-release, then Edit release > untick pre-release + Set as latest
+          if [ "$WHAT" = all ] && [ "$LATEST" = true ]; then flags+=(--latest); else flags+=(--prerelease --latest=false); fi
           gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "$TAG" --notes-file NOTES.md "${flags[@]}"
