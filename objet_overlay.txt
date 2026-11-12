@@ -1,0 +1,13 @@
+12:13:09 REAPER 7.84/macOS-arm64
+12:13:09 video inserted: 1 (/var/folders/h5/t85nd63d71x27_8gl5gw3l_w0000gn/T/objet_test.mp4)
+12:13:09 Objet Pa fx index 0
+12:13:09 audio running 1, play state 1
+12:13:28 phase 1 stereo: play state 0, position 60.00
+12:13:30 param 0 = 5.1
+12:13:34 phase 2 5.1: play state 0, position 60.00
+12:13:37 param 1 = HOA 3 (AmbiX)
+12:13:41 phase 3 hoa3: play state 0, position 60.00
+12:13:46 phase 4 hoa3-later: play state 1, position 2.34
+12:13:53 phase 5 finder-in-front: play state 1, position 9.30
+12:13:59 phase 6 fullscreen: play state 1, position 15.87
+12:14:07 done
