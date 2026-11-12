@@ -80,6 +80,14 @@ jobs:
           # first start: REAPER asks for an audio device (modal): answer No (and any other first-run question)
           ( for i in $(seq 1 90); do
               osascript -e 'tell application "System Events" to tell process "REAPER" to click button "No" of front window' >> dialogs.txt 2>&1 || true
+              # the evaluation reminder and the new version notice cover the video window: close them
+              osascript -e 'tell application "System Events" to tell process "REAPER"
+                repeat with w in (every window whose name starts with "About REAPER" or name is "REAPER New Version Notification")
+                  try
+                    click (first button of w whose subrole is "AXCloseButton")
+                  end try
+                end repeat
+              end tell' >> dialogs.txt 2>&1 || true
               sleep 1
             done ) &
           for n in 1 2 3 4 5 6; do
