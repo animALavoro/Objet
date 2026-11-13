@@ -1,6 +1,7 @@
 #!/bin/bash
 # Objet suite - installer for macOS.
 #   curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash
+#   ... | bash -s -- plugins       only the three plugins (Objet Pa, Objet a Scene, Objet a Monitor)
 #   ... | bash -s -- pa            only Objet Pa (also: scene, monitor, otio, ext = ReaPack + ReaImGui)
 #   ... | bash -s -- pa v0.2.0     a release of one plugin (tag pa-v0.2.0)
 # Downloads with curl (no quarantine flag), installs in the user's own folders: no administrator password.
@@ -16,12 +17,12 @@ USERPLUGINS="$HOME/Library/Application Support/REAPER/UserPlugins"
 [ "$(uname -s)" = "Darwin" ] || { echo "This installer is for macOS."; exit 1; }
 
 case "$WHAT" in
-  all|pa|scene|monitor|otio|ext) ;;
-  *) echo "Unknown part '$WHAT': use all, pa, scene, monitor, otio or ext."; exit 1 ;;
+  all|plugins|pa|scene|monitor|otio|ext) ;;
+  *) echo "Unknown part '$WHAT': use all, plugins, pa, scene, monitor, otio or ext."; exit 1 ;;
 esac
 
 if [ -n "$VERSION" ]; then
-  if [ "$WHAT" = all ]; then TAG="suite-$VERSION"; else TAG="$WHAT-$VERSION"; fi
+  if [ "$WHAT" = all ] || [ "$WHAT" = plugins ]; then TAG="suite-$VERSION"; else TAG="$WHAT-$VERSION"; fi
   BASE="https://github.com/$REPO/releases/download/$TAG"
 else
   BASE="https://github.com/$REPO/releases/latest/download"
@@ -83,6 +84,9 @@ case "$WHAT" in
            plugin Objet-a-Monitor-macOS.zip "Objet a Monitor.vst3" "Objet a Monitor"
            otio
            ext ;;
+  plugins) plugin Objet-Pa-macOS.zip "LB Spanner.vst3" "Objet Pa"
+           plugin Objet-a-Scene-macOS.zip "Objet a Scene.vst3" "Objet a Scene"
+           plugin Objet-a-Monitor-macOS.zip "Objet a Monitor.vst3" "Objet a Monitor" ;;
   pa)      plugin Objet-Pa-macOS.zip "LB Spanner.vst3" "Objet Pa" ;;
   scene)   plugin Objet-a-Scene-macOS.zip "Objet a Scene.vst3" "Objet a Scene" ;;
   monitor) plugin Objet-a-Monitor-macOS.zip "Objet a Monitor.vst3" "Objet a Monitor" ;;

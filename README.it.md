@@ -19,7 +19,10 @@ irm https://github.com/animALavoro/Objet/releases/latest/download/install-window
 ```
 Tutte e due installano i tre plugin, l'app OTIO to RPP e le estensioni di REAPER ReaPack e ReaImGui, dall'ultima release. Su Windows, Windows chiede una volta il permesso (i plugin vanno in `C:\Program Files\Common Files\VST3`). Poi in REAPER: *Plug-ins > VST > Clear cache/re-scan*. La guida ha i dettagli, la configurazione di REAPER del corso e le estensioni da aggiungere da ReaPack.
 
-- Una parte sola: su Mac chiudi la riga con `bash -s -- pa` (oppure `scene`, `monitor`, `otio`, `ext`); su Windows `& ([scriptblock]::Create((irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1))) pa`.
+- **Solo i tre plugin** (senza app né estensioni):
+  - macOS: `curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash -s -- plugins`
+  - Windows: `& ([scriptblock]::Create((irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1))) plugins`
+- Una parte sola: `pa`, `scene`, `monitor`, `otio` oppure `ext` (ReaPack + ReaImGui) al posto di `plugins`.
 - Una versione precisa: aggiungila dopo la parte, per esempio `bash -s -- all 2026.11.12-mac3`.
 
 **macOS, scaricato con il browser**: i plugin hanno una firma ad-hoc (nessun account sviluppatore Apple), quindi macOS blocca una copia scaricata. Copia il `.vst3` in `~/Library/Audio/Plug-Ins/VST3/` e sbloccalo dal Terminale, per esempio `xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/"LB Spanner.vst3"`. Se REAPER è già fermo all'avvio su *"… Not Opened. Apple could not verify …"* (il messaggio torna a ogni **Done**), lancia quella riga mentre il messaggio è a schermo, poi premi **Done** una volta.
