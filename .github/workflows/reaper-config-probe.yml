@@ -1,0 +1,30 @@
+name: REAPER config probe
+
+# By hand: what REAPER's "Import configuration" expects in a .ReaperConfigZip (strings near the messages in the binary).
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: macos-latest
+    steps:
+      - name: REAPER strings
+        run: |
+          brew install --cask reaper
+          B=/Applications/REAPER.app/Contents/MacOS/REAPER
+          mkdir -p out
+          strings -a "$B" > out/all.txt
+          grep -n -i -E "ReaperConfigZip|missing information|configuration|reaper-config|config.*zip" out/all.txt | head -200 > out/hits.txt
+          for pat in "Missing information" "ReaperConfigZip" "Import configuration"; do
+            n=$(grep -n -m1 -i "$pat" out/all.txt | cut -d: -f1)
+            [ -n "$n" ] && sed -n "$((n-40)),$((n+40))p" out/all.txt > "out/around-$(echo $pat | tr ' ' '_').txt"
+          done
+          ls -la out; cat out/hits.txt | head -80
+      - name: Push results to ci-probe
+        run: |
+          cd out && rm -f all.txt
+          git init -q -b ci-probe && git config user.name github-actions && git config user.email github-actions@users.noreply.github.com
+          git add -A && git commit -q -m probe
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" ci-probe

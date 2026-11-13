@@ -1,0 +1,56 @@
+name: Install test
+
+# By hand: runs install-windows.ps1 and install-mac.sh from this branch, as a student would (REAPER not installed),
+# against a published release, and lists what ended up where. Public repository: the minutes are free.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version to install from (e.g. 2026.11.13-kit3)"
+        required: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install (all)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force "$env:APPDATA\REAPER" | Out-Null
+          Set-Content "$env:APPDATA\REAPER\reaper.ini" "[REAPER]`r`nprojrelpath=0`r`nkeepme=1`r`n[other]`r`nx=2"
+          Set-Content "$env:APPDATA\REAPER\reaper-kb.ini" "KEY 1 65 40001 0"
+          & ./install-windows.ps1 all "${{ inputs.version }}"
+      - name: What is where
+        shell: pwsh
+        run: |
+          Get-ChildItem "$env:CommonProgramFiles\VST3" | Select-Object Name
+          Get-ChildItem "$env:LOCALAPPDATA\Programs\OTIO to RPP" | Select-Object Name, Length
+          Test-Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\OTIO to RPP.lnk"
+          Get-ChildItem -Recurse "$env:APPDATA\REAPER" | Select-Object FullName, Length
+          Get-Content "$env:APPDATA\REAPER\reaper.ini"
+          $ok = (Test-Path "$env:CommonProgramFiles\VST3\LB Spanner.vst3") -and (Test-Path "$env:APPDATA\REAPER\UserPlugins\reaper_reapack-x64.dll") `
+            -and (Test-Path "$env:APPDATA\REAPER\Scripts\Sexan_Scripts\Pie3000\pie_file.txt") -and ((Get-Content "$env:APPDATA\REAPER\reaper.ini") -contains "projrelpath=1") `
+            -and ((Get-Content "$env:APPDATA\REAPER\reaper.ini") -contains "keepme=1") -and (@(Get-ChildItem "$env:APPDATA\REAPER\reaper-kb.ini.before-objet-*").Count -eq 1)
+          if (-not $ok) { Write-Host "::error::something is missing"; exit 1 }
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install (all)
+        run: |
+          mkdir -p ~/Library/Application\ Support/REAPER
+          printf '[REAPER]\nprojrelpath=0\nkeepme=1\n[other]\nx=2\n' > ~/Library/Application\ Support/REAPER/reaper.ini
+          bash install-mac.sh all "${{ inputs.version }}"
+      - name: What is where
+        run: |
+          ls ~/Library/Audio/Plug-Ins/VST3 ~/Applications ~/Library/Application\ Support/REAPER ~/Library/Application\ Support/REAPER/UserPlugins
+          find ~/Library/Application\ Support/REAPER/Scripts
+          cat ~/Library/Application\ Support/REAPER/reaper.ini
+          codesign --verify --deep --strict ~/Applications/"OTIO to RPP.app" && echo "OTIO app signature ok"
+          r=~/Library/Application\ Support/REAPER
+          test -d ~/Library/Audio/Plug-Ins/VST3/"LB Spanner.vst3" && test -f "$r/UserPlugins/reaper_reapack-$(uname -m | sed 's/x86_64/x86_64/').dylib" \
+            && test -f "$r/Scripts/Sexan_Scripts/Pie3000/pie_file.txt" && grep -qx "projrelpath=1" "$r/reaper.ini" && grep -qx "keepme=1" "$r/reaper.ini" \
+            || { echo "::error::something is missing"; exit 1; }
