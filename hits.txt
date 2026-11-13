@@ -1,0 +1,163 @@
+43211:ReaperConfigZip files (*.ReaperConfigZip)
+43212:*.ReaperConfigZip
+44267:Can select a font and optionally configure it. idx=0 for default bitmapped font, no configuration is possible for this font. idx=1..16 for a configurable font, specify fontface such as "Arial", sz of 8-100, and optionally specify flags, which is a multibyte character, which can include 'i' for italics, 'u' for underline, or 'b' for bold. These flags may or may not be supported depending on the font and OS. After calling gfx_setfont(), gfx_texth may be updated to reflect the new average line height.
+44401:ReaperConfigZip files (*.ReaperConfigZip)
+44402:*.ReaperConfigZip
+45535:>ReaperConfigZip files (*.ReaperConfigZip)
+45536:*.ReaperConfigZip
+46139:Choose ReaperConfigZip to import
+46140:ReaperConfigZip
+47493:The following effects were in the project file and are not available. REAPER will keep their configurations, but things may not sound as desired.
+48457:CAFINFO:channel configuration
+48458:WAVEXT:channel configuration
+49817:OPENCOPY_CFGIDX : integer for the configuration of format to use when creating copies/applying FX. 0=wave (auto-depth), 1=APPLYFX_FORMAT, 2=RECORD_FORMAT
+49820:RECORD_FORMAT : base64-encoded sink configuration (see project files, etc). Callers can also pass a simple 4-byte string (non-base64-encoded), e.g. "evaw" or "l3pm", to use default settings for that sink type.
+49821:APPLYFX_FORMAT : base64-encoded sink configuration (see project files, etc). Used only if RECFMT_OPENCOPY is set to 1. Callers can also pass a simple 4-byte string (non-base64-encoded), e.g. "evaw" or "l3pm", to use default settings for that sink type.
+49830:RENDER_FORMAT : base64-encoded sink configuration (see project files, etc). Callers can also pass a simple 4-byte string (non-base64-encoded), e.g. "evaw" or "l3pm", to use default settings for that sink type.
+49831:RENDER_FORMAT2 : base64-encoded secondary sink configuration. Callers can also pass a simple 4-byte string (non-base64-encoded), e.g. "evaw" or "l3pm", to use default settings for that sink type, or "" to disable secondary render.
+49927:BANDTYPEx, BANDENABLEDx : band configuration [ReaEQ]
+49930:ITEMx : [ReaVerb] state configuration line, when writing should be followed by a write of DONE
+50290:gets ini configuration variable by name, raw, returns size of variable in szOut and pointer to variable. special values queryable are also:
+50300:gets ini configuration variable value as string. For most keys, this will get the in-memory copy of it, but for others it will actually read the .ini file directly.
+50304:sets ini configuration variable value as string (converted to the appropriate type), in memory. Return value is 0 if failed, 1 if global preference, 2 if project setting. If persist is set to the correct type (1=global preference, 2=project default), then value will be written to reaper.ini. Note that some ini keys can only be written with persist=3, these will be updated in the .ini file but may not take effect immediately (equivalent of WritePrivateProfileString). Note that when using persist=3, you may delete the key by writing the special value '=delete='
+50927:Gets a built-in track envelope by configuration chunk name, like "<VOLENV", or GUID string, like "{B577250D-146F-B544-9B34-F24FBE488F1F}".
+51867:gets plug-in specific named configuration value (returns true on success). 
+51875:sets plug-in specific named configuration value (returns true on success).
+51986:gets plug-in specific named configuration value (returns true on success). see TrackFX_GetNamedConfigParm
+51990:gets plug-in specific named configuration value (returns true on success). see TrackFX_SetNamedConfigParm
+52361:Get or set the arrange view grid division. 0.25=quarter note, 1.0/3.0=half note triplet, etc. swingmode can be 1 for swing enabled, swingamt is -1..1. swingmode can be 3 for measure-grid. Returns grid configuration flags
+53379:File: Export configuration...
+53380:File: Import configuration...
+53624:Audio device configuration...
+53701:Theme Development: Show theme tweak/configuration window
+54078:Spectrogram: Show selected spectral edit configuration menu
+56007:This misconfiguration may prevent peaks from generating properly.
+56008:Would you like to open preferences to the peaks path configuration to resolve this issue?
+56169:Plug-in channel configuration
+57145:Editor Configuration
+57186:Output format configuration
+57233:Export configuration
+57234:Import configuration
+57481:Import configuration...
+57482:Export configuration...
+57504:ASIO Configuration...
+57543:(effect configuration is preserved)
+57598:Auto-bypass FX (when set via project or manual setting) even when FX configuration open
+57752:This plug-in's configuration window is currently floating.
+57853:Use alternate configuration file (reaper-rewire.ini) when in client mode
+58145:Enable only when effect configuration is focused
+58146:Enable only when effect configuration is visible
+58424:Default FX learned mappings must be restricted to the active selection and/or configuration focused or visible.
+58748:Include in saved configuration:
+58751:Use imported configuration:
+60041:Float FX configuration
+60126:Vertical pane configuration
+63956:.ReaperConfigZip
+65869:When running in ReWire client mode, use a separate preferences configuration file so separate preferences and settings can be preserved for this mode only.
+66418:Can't write to REAPER configuration file. Application behavior may be unexpected, and any change to user options or settings will not persist after this REAPER session ends.
+66419:Configuration file:
+66420:Configuration Write Error
+66426:Loading Configuration...
+66516:  -audiocfg : show audio configuration at startup
+66617:Installing: configuration template
+67222:Channel Configuration
+67383:Microphone Configuration
+69340:Error loading batch converter configuration
+69370:Choose "Copy current settings to clipboard for command line use" from the Presets menu to create a configuration file that can be used to batch convert files from the command line.
+69371:Choose "Paste settings from clipboard" from the Presets menu to restore configuration settings that were copied using the "Copy current settings..." action, or copied from the command line.
+69374:The batch converter configuration file has this format:
+72333:Importing configuration will require REAPER to restart. You will be prompted to save any open projects, and will get to review the configuration before installing. Proceed?
+72335:Import Configuration?
+72338:reaper-configzip-info
+72339:%d files failed to write! ReaperConfigZip written, but confirm to make sure files excluded were not essential.
+72340:Wrote %d files to ReaperConfigZip
+72341:Errors writing ReaperConfigZip
+72351:Choose ReaperConfigZip file to save
+72353:Error writing ReaperConfigZip
+72354:Configuration
+72383:Error opening ReaperConfigZip
+72393:Configuration import error
+72394:Error opening ReaperConfigZip (missing information)
+73155:Save as format configuration
+99397:ReaperConfigZip files (*.ReaperConfigZip)
+99398:*.ReaperConfigZip
+100479:Can select a font and optionally configure it. idx=0 for default bitmapped font, no configuration is possible for this font. idx=1..16 for a configurable font, specify fontface such as "Arial", sz of 8-100, and optionally specify flags, which is a multibyte character, which can include 'i' for italics, 'u' for underline, or 'b' for bold. These flags may or may not be supported depending on the font and OS. After calling gfx_setfont(), gfx_texth may be updated to reflect the new average line height.
+100633:ReaperConfigZip files (*.ReaperConfigZip)
+100634:*.ReaperConfigZip
+101832:ReaperConfigZip files (*.ReaperConfigZip)
+101833:*.ReaperConfigZip
+102479:/Configurations
+102480:Choose ReaperConfigZip to import
+102481:ReaperConfigZip
+103845:The following effects were in the project file and are not available. REAPER will keep their configurations, but things may not sound as desired.
+104787:CAFINFO:channel configuration
+104788:WAVEXT:channel configuration
+106151:OPENCOPY_CFGIDX : integer for the configuration of format to use when creating copies/applying FX. 0=wave (auto-depth), 1=APPLYFX_FORMAT, 2=RECORD_FORMAT
+106154:RECORD_FORMAT : base64-encoded sink configuration (see project files, etc). Callers can also pass a simple 4-byte string (non-base64-encoded), e.g. "evaw" or "l3pm", to use default settings for that sink type.
+106155:APPLYFX_FORMAT : base64-encoded sink configuration (see project files, etc). Used only if RECFMT_OPENCOPY is set to 1. Callers can also pass a simple 4-byte string (non-base64-encoded), e.g. "evaw" or "l3pm", to use default settings for that sink type.
+106164:RENDER_FORMAT : base64-encoded sink configuration (see project files, etc). Callers can also pass a simple 4-byte string (non-base64-encoded), e.g. "evaw" or "l3pm", to use default settings for that sink type.
+106165:RENDER_FORMAT2 : base64-encoded secondary sink configuration. Callers can also pass a simple 4-byte string (non-base64-encoded), e.g. "evaw" or "l3pm", to use default settings for that sink type, or "" to disable secondary render.
+106261:BANDTYPEx, BANDENABLEDx : band configuration [ReaEQ]
+106264:ITEMx : [ReaVerb] state configuration line, when writing should be followed by a write of DONE
+106624:gets ini configuration variable by name, raw, returns size of variable in szOut and pointer to variable. special values queryable are also:
+106634:gets ini configuration variable value as string. For most keys, this will get the in-memory copy of it, but for others it will actually read the .ini file directly.
+106638:sets ini configuration variable value as string (converted to the appropriate type), in memory. Return value is 0 if failed, 1 if global preference, 2 if project setting. If persist is set to the correct type (1=global preference, 2=project default), then value will be written to reaper.ini. Note that some ini keys can only be written with persist=3, these will be updated in the .ini file but may not take effect immediately (equivalent of WritePrivateProfileString). Note that when using persist=3, you may delete the key by writing the special value '=delete='
+107261:Gets a built-in track envelope by configuration chunk name, like "<VOLENV", or GUID string, like "{B577250D-146F-B544-9B34-F24FBE488F1F}".
+108201:gets plug-in specific named configuration value (returns true on success). 
+108209:sets plug-in specific named configuration value (returns true on success).
+108320:gets plug-in specific named configuration value (returns true on success). see TrackFX_GetNamedConfigParm
+108324:gets plug-in specific named configuration value (returns true on success). see TrackFX_SetNamedConfigParm
+108695:Get or set the arrange view grid division. 0.25=quarter note, 1.0/3.0=half note triplet, etc. swingmode can be 1 for swing enabled, swingamt is -1..1. swingmode can be 3 for measure-grid. Returns grid configuration flags
+109702:File: Export configuration...
+109703:File: Import configuration...
+109947:Audio device configuration...
+110024:Theme Development: Show theme tweak/configuration window
+110401:Spectrogram: Show selected spectral edit configuration menu
+112332:This misconfiguration may prevent peaks from generating properly.
+112333:Would you like to open preferences to the peaks path configuration to resolve this issue?
+112499:Plug-in channel configuration
+113485:Editor Configuration
+113526:Output format configuration
+113573:Export configuration
+113574:Import configuration
+113822:Import configuration...
+113823:Export configuration...
+113845:ASIO Configuration...
+113884:(effect configuration is preserved)
+113939:Auto-bypass FX (when set via project or manual setting) even when FX configuration open
+114093:This plug-in's configuration window is currently floating.
+114194:Use alternate configuration file (reaper-rewire.ini) when in client mode
+114486:Enable only when effect configuration is focused
+114487:Enable only when effect configuration is visible
+114765:Default FX learned mappings must be restricted to the active selection and/or configuration focused or visible.
+115089:Include in saved configuration:
+115092:Use imported configuration:
+116382:Float FX configuration
+116467:Vertical pane configuration
+120308:.ReaperConfigZip
+122228:When running in ReWire client mode, use a separate preferences configuration file so separate preferences and settings can be preserved for this mode only.
+122782:Can't write to REAPER configuration file. Application behavior may be unexpected, and any change to user options or settings will not persist after this REAPER session ends.
+122783:Configuration file:
+122784:Configuration Write Error
+122790:Loading Configuration...
+122880:  -audiocfg : show audio configuration at startup
+122981:Installing: configuration template
+123544:Channel Configuration
+123705:Microphone Configuration
+125666:Error loading batch converter configuration
+125696:Choose "Copy current settings to clipboard for command line use" from the Presets menu to create a configuration file that can be used to batch convert files from the command line.
+125697:Choose "Paste settings from clipboard" from the Presets menu to restore configuration settings that were copied using the "Copy current settings..." action, or copied from the command line.
+125700:The batch converter configuration file has this format:
+128662:Importing configuration will require REAPER to restart. You will be prompted to save any open projects, and will get to review the configuration before installing. Proceed?
+128664:Import Configuration?
+128667:reaper-configzip-info
+128668:%d files failed to write! ReaperConfigZip written, but confirm to make sure files excluded were not essential.
+128669:Wrote %d files to ReaperConfigZip
+128670:Errors writing ReaperConfigZip
+128680:Choose ReaperConfigZip file to save
+128682:Error writing ReaperConfigZip
+128683:Configuration
+128712:Error opening ReaperConfigZip
+128722:Configuration import error
+128723:Error opening ReaperConfigZip (missing information)
+129486:Save as format configuration

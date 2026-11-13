@@ -1,0 +1,81 @@
+Configuration
+Color themes
+Plug-in presets
+JS FX
+Project and track templates
+Misc data
+Cursors and key maps
+Menus and toolbars
+Actions and key bindings
+Menu sets
+Channel mappings
+ReaScripts
+Language Packs
+Media Explorer Databases
+Web Interface Pages
+MIDI Note/CC Names
+Unsaved/Cached Metadata
+presets-
+reaper-menu.ini
+reaper-kb.ini
+FXChains
+ProjectTemplates
+TrackTemplates
+ChanMaps
+MediaDB
+reaper_www_root
+AutomationItems
+MetadataCaches
+reaper-reginf
+Error opening ReaperConfigZip
+Scanning...
+Can't import: no items selected
+Fail
+configimport_rem
+Bad ZIP
+Failed write
+Can't write
+1 item failed to install (look in the item list to see what failed)
+%d items failed to install (you can look in the list to see which items failed)
+Configuration import error
+Error opening ReaperConfigZip (missing information)
+*** Remove
+Import will install 1 file
+Import will install %d files
+ and modify 1 file
+ and modify %d files
+ and REMOVE 1 file!
+ and REMOVE %d files!
+/PreviousConfigFiles/
+No change
+charpattern
+offset
+codepoint
+codes
+initial position is a continuation byte
+out of bounds
+invalid UTF-8 code
+initial position out of bounds
+final position out of bounds
+about-font.png
+Lua 5.4
+_VERSION
+assert
+collectgarbage
+dofile
+getmetatable
+ipairs
+loadfile
+load
+pairs
+pcall
+print
+rawequal
+rawlen
+rawget
+rawset
+setmetatable
+tonumber
+tostring
+xpcall
+assertion failed!

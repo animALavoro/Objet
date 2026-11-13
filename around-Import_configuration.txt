@@ -1,0 +1,81 @@
+Show record path in finder
+Show secondary record path in finder
+Show render path in finder
+Show project template path in explorer/finder
+Show track template path in explorer/finder
+Show FX chain path in explorer/finder
+Show ReaScript path in explorer/finder
+Show automation item path in explorer/finder
+Show theme path in explorer/finder
+New project tab
+New project tab, ignore default template
+Close current project tab
+Close all projects but current
+File: Close all projects
+File: Save all projects
+Project tabs: switch to next project tab
+Project tabs: switch to previous project tab
+Project tabs: switch to previously-active project tab
+Project tabs: switch to project tab N
+Project tabs: move project tab to position N
+Project tabs: move project tab left by one
+Project tabs: move project tab right by one
+Project tabs: auto-offline background project media
+Project tabs: run background projects
+Project tabs: run stopped background projects
+Project tabs: display video from background projects if active project lacks video
+Project tabs: always show project tabs
+Project tabs: hide all background project windows
+Project tabs: Play stopped background projects with active project
+Project tabs: Synchronize play start times w/ play background projects
+Project tabs: show project tabs on left side of window
+Project tabs: synchronize any parent projects when playing back subproject
+Project tabs: defer rendering of subprojects (render on tab switch rather than save)
+Project tabs: leave subproject open in tab after automatic open and render
+Project tabs: do not automatically render subprojects (require manual render)
+Project tabs: prompt before automatic rerender of background subprojects
+Project tabs: force project tabs visible when monitoring FX in use
+Open selected item source media in Media Explorer
+Open selected item source media in explorer/finder
+File: Export configuration...
+File: Import configuration...
+File: Render project to disk...
+File: Render project, using the most recent render settings
+File: Dry run render project, using the most recent render settings
+File: Render project, using the most recent render settings, with a new target file name...
+File: Render project, using the most recent render settings, auto-close render dialog
+File: Add project to render queue, using the most recent render settings
+File: Open render statistics charts from most recent render in web browser
+File: Open render statistics charts from most recent render in web browser (hide file paths)
+File: Open render statistics charts from most recent render in web browser (hide project regions/markers)
+File: Open render statistics charts from most recent render in web browser (hide file paths and project regions/markers)
+Calculate loudness of selected items, including take and track FX and settings, via dry run render
+Calculate loudness of selected tracks via dry run render
+Calculate loudness of selected tracks within time selection via dry run render
+Calculate mono loudness of selected tracks via dry run render
+Calculate mono loudness of selected tracks within time selection via dry run render
+Calculate stereo loudness of selected tracks via dry run render
+Calculate stereo loudness of selected tracks within time selection via dry run render
+Calculate loudness of master mix via dry run render
+Calculate loudness of master mix within time selection via dry run render
+Calculate loudness of selected items source media via dry run render
+File: Open render queue
+Render all queued renders
+File: Consolidate tracks...
+File: Export project MIDI...
+MIDI: clear retroactive MIDI history
+MIDI: insert recent retroactively recorded MIDI for armed tracks
+MIDI: insert all available retroactively recorded MIDI for armed tracks
+MIDI: insert recent retroactively recorded MIDI for armed and selected tracks
+MIDI: insert all available retroactively recorded MIDI for armed and selected tracks
+Record: Start new files during recording
+Record: Remove recorded media not yet in project
+Record: Add recorded media to project
+File: Save live output to disk (bounce)...
+File: Save live output to disk (bounce), using the most recent bounce settings
+File: Quit REAPER
+File: Spawn new instance of REAPER
+File: Project settings...
+Project recording settings
+Track: Toggle full multichannel metering
+Track: Toggle track metering

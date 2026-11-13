@@ -1,0 +1,81 @@
+AVSI
+[A^]
+AWAVSPI
+[A^A_]
+AWAVSPI
+[A^A_]Ã
+0E14PCM_source_sd2
+10PCM_source
+12PCM_sink_raw
+?UUUUUU
+MbP?
+9Y>)FH
+?3OP
+?)O8
+,_!@
+9Y>)
+MbP?
+MbP?
+MbP?
+COLOR
+B26WDL_VWnd_EnvPanelContainer
+zt?{
+vH7B
+9@(kU
+=@fffff
+>@fffff
+q@333333
+333333
+?UUUUUU
+?UUUUUU
+UUUUUU
+UUUUUU
+0@UUUUUU
+@UUUUUU
+?UUUUUU
+yE>:
+9Y>)F
+REAPER automation items (*.ReaperAutoItem)
+*.ReaperAutoItem
+All files
+ReaperConfigZip files (*.ReaperConfigZip)
+*.ReaperConfigZip
+All files (*.*)
+C/C++ header files (*.h)
+All files
+REAPER Track Template files (*.RTrackTemplate)
+*.RTrackTemplate
+All files
+RPP files (*.RPP)
+*.RPP
+All files
+MIDI files (*.MID)
+*.MID
+All files
+REAPER Project files (*.RPP)
+*.RPP
+All files
+REAPER Track Template files (*.RTrackTemplate)
+*.RTrackTemplate
+Project files (*.RPP,*.EDL,*.TXT,clipsort.log)
+*.RPP;*.EDL;*.TXT;CLIPSORT.LOG
+All files
+18WDL_AssocArrayImplI5_GUIDiE
+333333
+Mb@?
+!I?>
+W4vC
+Mb`?
+9MediaItem
+16LICE_SharedImage
+12ItemPropsWnd
+)c=Hy
+0000000000000000
+23ProjectStateContext_Mem
+24ProjectStateContext_File
+29ProjectStateContext_FastQueue
+?456789:;<=
+ !"#$%&'()*+,-./0123
+18WDL_GUIDKeyedArrayIiE
+?456789:;<=
+ !"#$%&'()*+,-./0123
