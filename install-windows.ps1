@@ -1,7 +1,7 @@
 # Objet suite - installer for Windows.
 #   irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1 | iex
 #   & ([scriptblock]::Create((irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1))) pa
-#        only Objet Pa (also: scene, monitor, otio, ext = ReaPack + ReaImGui); a second argument is a version (tag <part>-<version>, or suite-<version>)
+#        only Objet Pa (also: plugins = the three plugins, scene, monitor, otio, ext = ReaPack + ReaImGui); a second argument is a version (tag <part>-<version>, or suite-<version>)
 # The plugins go to C:\Program Files\Common Files\VST3 (the standard VST3 folder: Windows asks once for permission),
 # the OTIO to RPP app to your own programs folder with a Start menu shortcut.
 param([string]$What = "all", [string]$Version = "")
@@ -9,9 +9,9 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"            # Invoke-WebRequest is much faster without the progress bar
 
 $Repo = "animALavoro/Objet"
-if ($What -notin @("all", "pa", "scene", "monitor", "otio", "ext")) { Write-Host "Unknown part '$What': use all, pa, scene, monitor, otio or ext."; return }
+if ($What -notin @("all", "plugins", "pa", "scene", "monitor", "otio", "ext")) { Write-Host "Unknown part '$What': use all, plugins, pa, scene, monitor, otio or ext."; return }
 if ($Version -ne "") {
-    $tag = if ($What -eq "all") { "suite-$Version" } else { "$What-$Version" }
+    $tag = if ($What -in @("all", "plugins")) { "suite-$Version" } else { "$What-$Version" }
     $Base = "https://github.com/$Repo/releases/download/$tag"
 } else { $Base = "https://github.com/$Repo/releases/latest/download" }
 
@@ -68,9 +68,9 @@ function Install-Ext {
 }
 
 Write-Host "Objet suite: installing from $Base"
-if ($What -in @("all", "pa"))      { Stage-Plugin "Objet-Pa-Windows.zip" "LB Spanner.vst3" }
-if ($What -in @("all", "scene"))   { Stage-Plugin "Objet-a-Scene-Windows.zip" "Objet a Scene.vst3" }
-if ($What -in @("all", "monitor")) { Stage-Plugin "Objet-a-Monitor-Windows.zip" "Objet a Monitor.vst3" }
+if ($What -in @("all", "plugins", "pa"))      { Stage-Plugin "Objet-Pa-Windows.zip" "LB Spanner.vst3" }
+if ($What -in @("all", "plugins", "scene"))   { Stage-Plugin "Objet-a-Scene-Windows.zip" "Objet a Scene.vst3" }
+if ($What -in @("all", "plugins", "monitor")) { Stage-Plugin "Objet-a-Monitor-Windows.zip" "Objet a Monitor.vst3" }
 
 $plugins = @(Get-ChildItem $stage -Directory)
 if ($plugins.Count -gt 0) {
