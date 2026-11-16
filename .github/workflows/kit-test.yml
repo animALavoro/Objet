@@ -1,0 +1,96 @@
+name: Kit test (Mac)
+
+# By hand: the student kit on a CI Mac, as a student gets it. REAPER (evaluation) from Homebrew, install-mac.sh of a
+# release, the course configuration (unzipped in REAPER's resource folder, as Import configuration does), then REAPER
+# runs tests/mac/kit_test.lua: extensions loaded, actions registered, each script run, a screenshot each phase
+# (branch kit-shots).
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Suite version (tag suite-<version>); empty = latest"
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  kit:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: REAPER
+        run: |
+          brew install --cask reaper
+          brew install --cask blackhole-2ch || echo "blackhole not installed"
+          sudo killall coreaudiod || true
+
+      - name: Install the kit as a student
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [ -n "$VERSION" ]; then
+            curl -fsSL "https://github.com/animALavoro/Objet/releases/download/suite-$VERSION/install-mac.sh" | bash -s -- all "$VERSION"
+            curl -fsSL -o "$TMPDIR/cfg.zip" "https://github.com/animALavoro/Objet/releases/download/suite-$VERSION/Cinema_Immersivo.ReaperConfigZip"
+          else
+            curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash
+            curl -fsSL -o "$TMPDIR/cfg.zip" https://github.com/animALavoro/Objet/releases/latest/download/Cinema_Immersivo.ReaperConfigZip
+          fi
+          RES="$HOME/Library/Application Support/REAPER"
+          mkdir -p "$RES" && cd "$RES" && unzip -o -q "$TMPDIR/cfg.zip" && rm -f reaper-configzip-info
+          find "$RES" -maxdepth 3 | sort
+
+      - name: Run REAPER, screenshot each phase
+        run: |
+          mkdir -p shots
+          printf '<REAPER_PROJECT 0.1 "7.0" 0\n>\n' > "$TMPDIR/kit.rpp"
+          /Applications/REAPER.app/Contents/MacOS/REAPER -newinst "$TMPDIR/kit.rpp" "$GITHUB_WORKSPACE/tests/mac/kit_test.lua" > reaper.out 2>&1 &
+          RP=$!
+          # only the first-run audio question and the evaluation reminder are closed: any other window is what a student sees
+          ( for i in $(seq 1 150); do
+              osascript -e 'tell application "System Events" to tell process "REAPER"
+                repeat with w in (every window whose name starts with "About REAPER" or name is "REAPER New Version Notification")
+                  try
+                    click (first button of w whose subrole is "AXCloseButton")
+                  end try
+                end repeat
+                try
+                  if exists (button "No" of front window) and (name of front window) contains "audio" then click button "No" of front window
+                end try
+              end tell' >> dialogs.txt 2>&1 || true
+              sleep 1
+            done ) &
+          for n in 1 2 3 4 5; do
+            t=0
+            until [ -f "$TMPDIR/kit_phase_$n" ] || [ $t -ge 180 ]; do sleep 1; t=$((t+1)); done
+            if [ ! -f "$TMPDIR/kit_phase_$n" ]; then
+              echo "phase $n never came"; screencapture -x "shots/$n-timeout.png"
+              osascript -e 'tell application "System Events" to get name of every window of process "REAPER"' > "shots/$n-windows.txt" 2>&1 || true
+              osascript -e 'tell application "System Events" to tell process "REAPER" to get entire contents of front window' > "shots/$n-front.txt" 2>&1 || true
+              break
+            fi
+            name=$(cat "$TMPDIR/kit_phase_$n")
+            sleep 4
+            screencapture -x "shots/$n-$name.png" || echo "screencapture failed"
+            osascript -e 'tell application "System Events" to get name of every window of process "REAPER"' > "shots/$n-windows.txt" 2>&1 || true
+            osascript -e 'tell application "System Events" to tell process "REAPER" to get value of every static text of every window' > "shots/$n-texts.txt" 2>&1 || true
+            touch "$TMPDIR/kit_ack_$n"
+          done
+          t=0; while kill -0 $RP 2>/dev/null && [ $t -lt 30 ]; do sleep 1; t=$((t+1)); done
+          kill $RP 2>/dev/null || true
+          cp "$TMPDIR/kit_test.txt" reaper.out dialogs.txt shots/ 2>/dev/null || true
+          ls -R "$HOME/Library/Application Support/REAPER/UserPlugins" "$HOME/Library/Application Support/REAPER/ReaPack" > shots/files.txt 2>&1 || true
+          cat shots/kit_test.txt || true
+
+      - name: Screenshots to the kit-shots branch
+        if: always()
+        run: |
+          rm -rf /tmp/kit-shots && mkdir /tmp/kit-shots && cp -R shots/. /tmp/kit-shots/ && cd /tmp/kit-shots
+          git init -q -b kit-shots
+          git config user.name "github-actions" && git config user.email "github-actions@users.noreply.github.com"
+          echo "run ${{ github.run_id }}, version '${{ inputs.version }}'" > RUN.txt
+          git add -A && git commit -q -m "kit screenshots, run ${{ github.run_id }}"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" kit-shots
