@@ -54,7 +54,7 @@ Si installa con una riga, sempre con **REAPER chiuso**. La stessa riga serve anc
    ```
    curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash
    ```
-3. Installa i tre plugin in `~/Library/Audio/Plug-Ins/VST3`, l'app *OTIO to RPP* nella cartella Applicazioni della tua utenza (Finder > Vai > Inizio > Applicazioni), lo script *Polywav Manager* nella cartella Scripts di REAPER e le estensioni di REAPER **ReaPack** e **ReaImGui**. Non chiede password.
+3. Installa i tre plugin in `~/Library/Audio/Plug-Ins/VST3`, l'app *OTIO to RPP* nella cartella Applicazioni della tua utenza (Finder > Vai > Inizio > Applicazioni), lo script *Polywav Manager* nella cartella Scripts di REAPER e le estensioni e gli script di REAPER del corso (**ReaPack**, **SWS**, **js_ReaScriptAPI**, **ReaImGui**, Pie menu, nvk_SEARCH, capitolo 5). Non chiede password.
 4. Apri REAPER: *REAPER > Settings > Plug-ins > VST* → **Clear cache/re-scan**.
 
 **Perché dal Terminale?** I plugin non hanno la firma di uno sviluppatore Apple: se li scarichi con il browser, macOS li blocca. Quelli scaricati dal Terminale invece si aprono normalmente. Se hai già scaricato uno zip con il browser e REAPER all'avvio mostra *"… Not Opened. Apple could not verify …"* (il messaggio torna a ogni **Done**), lascialo lì, apri il Terminale e lancia:
@@ -69,7 +69,7 @@ xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/"LB Spanner.vst3"
    ```
    irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1 | iex
    ```
-3. Windows chiede una volta il permesso di modificare il computer: rispondi **Sì**. I plugin vanno in `C:\Program Files\Common Files\VST3`, l'app *OTIO to RPP* nel menu Start, lo script *Polywav Manager* e le estensioni **ReaPack** e **ReaImGui** nella cartella di REAPER.
+3. Windows chiede una volta il permesso di modificare il computer: rispondi **Sì**. I plugin vanno in `C:\Program Files\Common Files\VST3`, l'app *OTIO to RPP* nel menu Start, lo script *Polywav Manager*, le estensioni e gli script del corso (**ReaPack**, **SWS**, **js_ReaScriptAPI**, **ReaImGui**, Pie menu, nvk_SEARCH, capitolo 5) nella cartella di REAPER.
    Se rispondi No, i plugin vanno nella tua cartella utente e lo script ti dice quale percorso aggiungere in REAPER.
 4. Apri REAPER: *Options > Preferences > Plug-ins > VST* → **Clear cache/re-scan**.
 
@@ -88,19 +88,12 @@ L'importazione sostituisce le impostazioni di REAPER che hai adesso: se usi già
 
 I template di progetto del corso te li dà il docente a parte.
 
-### Le estensioni (ReaPack, SWS, Pie menu, NVK Search)
-L'installazione mette già in REAPER **ReaPack** (il gestore dei pacchetti di REAPER) e **ReaImGui** (serve a molti script). Dopo aver importato la configurazione del corso, il resto si installa da ReaPack, una volta (gli archivi sono già impostati):
+### Le estensioni (ReaPack, SWS, Pie menu, nvk_SEARCH)
+L'installazione del capitolo 4 mette già in REAPER tutto quello che serve, senza passi a mano: **ReaPack** (il gestore dei pacchetti), **SWS/S&M** (azioni e funzioni in più usate nel corso), **js_ReaScriptAPI** e **ReaImGui** (librerie che servono agli script), **Pie3000** (il menu circolare, "pie menu") e **nvk_SEARCH** (la ricerca veloce di azioni, FX, tracce e media).
 
-1. In REAPER: *Extensions > ReaPack > Browse packages…*
-2. Cerca e installa (clic destro sul pacchetto → *Install*, poi **Apply**):
-   - **SWS/S&M extension** (azioni e funzioni in più usate nel corso);
-   - **Pie3000** (il menu circolare, "pie menu");
-   - **nvk_SEARCH** (la ricerca veloce di azioni, FX, tracce e media).
-3. Riavvia REAPER.
+Scorciatoie del corso: **C** apre il Pie menu, **\*** del tastierino numerico apre nvk_SEARCH, **T** e **Tab** usano azioni di SWS.
 
-Scorciatoie del corso che usano questi pacchetti: **C** apre il Pie menu, **\*** del tastierino numerico apre nvk_SEARCH, **T** e **Tab** usano azioni di SWS. Finché il pacchetto non è installato, quella scorciatoia non fa nulla.
-
-Se un pacchetto non compare nella ricerca: *Extensions > ReaPack > Synchronize packages* (aggiorna gli elenchi) e cerca di nuovo.
+**nvk_SEARCH chiede una licenza** la prima volta: è gratuito, ma ognuno deve prendere la sua chiave (gratis) su [store.nvk.tools/l/nvk_SEARCH](https://store.nvk.tools/l/nvk_SEARCH) (prezzo 0, arriva per email) e incollarla nella finestra che si apre.
 
 ## 6. Primi passi
 
@@ -142,7 +135,7 @@ Vengono convertite tracce audio, clip (posizione, durata, offset), clip disattiv
 
 Uno script per REAPER: per gli item che suonano i **polywav** del registratore (un file con tutti i microfoni del ciak), cerca in una cartella i **file mono** dei singoli canali (per iXML, nome del file e metadati) e mette ogni microfono sulla sua traccia, con gli stessi tempi, offset e fade. La traccia con il polywav resta.
 
-Serve **SWS** (capitolo 5); **js_ReaScriptAPI** (da ReaPack) è facoltativo e permette di scegliere la cartella con il dialogo.
+Usa **SWS**, **ReaImGui** e **js_ReaScriptAPI**, già installati dal capitolo 4.
 
 1. La prima volta: *Actions > Show action list… > New action > Load ReaScript…* → `Scripts/Polywav Manager/Polywav Manager.lua` (nella cartella delle risorse di REAPER: *Options > Show REAPER resource path*). Poi lo trovi nella lista delle azioni come *Polywav Manager*.
 2. Seleziona gli item dei polywav (o le tracce), scegli la cartella dei mono, **Analyze selection**.

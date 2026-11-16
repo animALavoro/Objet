@@ -17,12 +17,12 @@ curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install
 ```
 irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1 | iex
 ```
-Both install the three plugins, the OTIO to RPP app, the Polywav Manager script and the REAPER extensions ReaPack and ReaImGui, from the latest release. On Windows, Windows asks once for permission (the plugins go to `C:\Program Files\Common Files\VST3`). Then in REAPER: *Plug-ins > VST > Clear cache/re-scan*. The guide has the details, the course's REAPER configuration and the extensions to add from ReaPack.
+Both install the three plugins, the OTIO to RPP app, the Polywav Manager script and the course's REAPER extensions and scripts (ReaPack, SWS, js_ReaScriptAPI, ReaImGui, Pie3000, nvk_SEARCH, downloaded from their own sources), from the latest release. On Windows, Windows asks once for permission (the plugins go to `C:\Program Files\Common Files\VST3`). Then in REAPER: *Plug-ins > VST > Clear cache/re-scan*. The guide has the details and the course's REAPER configuration.
 
 - **Only the three plugins** (no app, no extensions):
   - macOS: `curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash -s -- plugins`
   - Windows: `& ([scriptblock]::Create((irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1))) plugins`
-- One part only: `pa`, `scene`, `monitor`, `otio`, `polywav` or `ext` (ReaPack + ReaImGui) in place of `plugins`.
+- One part only: `pa`, `scene`, `monitor`, `otio`, `polywav` or `ext` (REAPER extensions and scripts) in place of `plugins`.
 - A given version: add it after the part, e.g. `bash -s -- all 2026.11.12-mac3`.
 
 **macOS, downloaded with a browser**: the plugins have an ad-hoc signature (no Apple developer account), so macOS blocks a downloaded copy. Copy the `.vst3` to `~/Library/Audio/Plug-Ins/VST3/` and unblock it in the Terminal, e.g. `xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/"LB Spanner.vst3"`. If REAPER is already stuck at startup on *"… Not Opened. Apple could not verify …"* (the message comes back at every **Done**), run that line while it is showing, then press **Done** once.
