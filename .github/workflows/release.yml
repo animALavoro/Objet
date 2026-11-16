@@ -245,6 +245,7 @@ jobs:
         run: |
           cp install-mac.sh install-windows.ps1 dist/
           cp kit/* dist/                 # the course's REAPER configuration
+          python3 tools/reaper_packages.py dist/reaper-packages.txt   # SWS, js_ReaScriptAPI, ReaImGui, pie menu, nvk_SEARCH: where to get them
           ls -l dist
           flags=()
           # GitHub's latest is the newest release that is not a pre-release (make_latest=false is not enough):

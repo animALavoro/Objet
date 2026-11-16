@@ -17,12 +17,12 @@ curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install
 ```
 irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1 | iex
 ```
-Tutte e due installano i tre plugin, l'app OTIO to RPP, lo script Polywav Manager e le estensioni di REAPER ReaPack e ReaImGui, dall'ultima release. Su Windows, Windows chiede una volta il permesso (i plugin vanno in `C:\Program Files\Common Files\VST3`). Poi in REAPER: *Plug-ins > VST > Clear cache/re-scan*. La guida ha i dettagli, la configurazione di REAPER del corso e le estensioni da aggiungere da ReaPack.
+Tutte e due installano i tre plugin, l'app OTIO to RPP, lo script Polywav Manager e le estensioni e gli script di REAPER del corso (ReaPack, SWS, js_ReaScriptAPI, ReaImGui, Pie3000, nvk_SEARCH, scaricati dalle loro fonti), dall'ultima release. Su Windows, Windows chiede una volta il permesso (i plugin vanno in `C:\Program Files\Common Files\VST3`). Poi in REAPER: *Plug-ins > VST > Clear cache/re-scan*. La guida ha i dettagli e la configurazione di REAPER del corso.
 
 - **Solo i tre plugin** (senza app né estensioni):
   - macOS: `curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash -s -- plugins`
   - Windows: `& ([scriptblock]::Create((irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1))) plugins`
-- Una parte sola: `pa`, `scene`, `monitor`, `otio`, `polywav` oppure `ext` (ReaPack + ReaImGui) al posto di `plugins`.
+- Una parte sola: `pa`, `scene`, `monitor`, `otio`, `polywav` oppure `ext` (estensioni e script di REAPER) al posto di `plugins`.
 - Una versione precisa: aggiungila dopo la parte, per esempio `bash -s -- all 2026.11.12-mac3`.
 
 **macOS, scaricato con il browser**: i plugin hanno una firma ad-hoc (nessun account sviluppatore Apple), quindi macOS blocca una copia scaricata. Copia il `.vst3` in `~/Library/Audio/Plug-Ins/VST3/` e sbloccalo dal Terminale, per esempio `xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/"LB Spanner.vst3"`. Se REAPER è già fermo all'avvio su *"… Not Opened. Apple could not verify …"* (il messaggio torna a ogni **Done**), lancia quella riga mentre il messaggio è a schermo, poi premi **Done** una volta.

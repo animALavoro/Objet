@@ -2,7 +2,8 @@
 # Objet suite - installer for macOS.
 #   curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash
 #   ... | bash -s -- plugins       only the three plugins (Objet Pa, Objet a Scene, Objet a Monitor)
-#   ... | bash -s -- pa            only Objet Pa (also: scene, monitor, otio, polywav = Polywav Manager script, ext = ReaPack + ReaImGui)
+#   ... | bash -s -- pa            only Objet Pa (also: scene, monitor, otio, polywav = Polywav Manager script,
+#                                  ext = ReaPack, SWS, js_ReaScriptAPI, ReaImGui, pie menu, nvk_SEARCH)
 #   ... | bash -s -- pa v0.2.0     a release of one plugin (tag pa-v0.2.0)
 # Downloads with curl (no quarantine flag), installs in the user's own folders: no administrator password.
 set -euo pipefail
@@ -12,8 +13,8 @@ WHAT="${1:-all}"
 VERSION="${2:-}"
 VST3="$HOME/Library/Audio/Plug-Ins/VST3"
 APPS="$HOME/Applications"
-USERPLUGINS="$HOME/Library/Application Support/REAPER/UserPlugins"
-SCRIPTS="$HOME/Library/Application Support/REAPER/Scripts"
+RESOURCE="$HOME/Library/Application Support/REAPER"
+SCRIPTS="$RESOURCE/Scripts"
 
 [ "$(uname -s)" = "Darwin" ] || { echo "This installer is for macOS."; exit 1; }
 
@@ -77,18 +78,30 @@ polywav() {
   echo "  installed in $SCRIPTS/Polywav Manager (REAPER: Actions > New action > Load ReaScript, the first time)"
 }
 
-# REAPER extensions from their own releases (not from this repository): ReaPack (packages: SWS, scripts) and ReaImGui
+# REAPER extensions and scripts, from their own sources (not from this repository): ReaPack (from its releases), then
+# the files listed in reaper-packages.txt (made at release time from the ReaPack indexes: SWS, js_ReaScriptAPI,
+# ReaImGui, the pie menu, nvk_SEARCH), in the same places where ReaPack puts them
 ext() {
-  local arch; arch=$(uname -m); [ "$arch" = arm64 ] || arch=x86_64
-  mkdir -p "$USERPLUGINS"
-  for f in "cfillion/reapack:reaper_reapack-$arch.dylib" "cfillion/reaimgui:reaper_imgui-$arch.dylib"; do
-    local repo="${f%%:*}" file="${f#*:}"
-    echo "- ${file%%-*} ($arch)"
-    curl -fL --retry 3 --progress-bar -o "$USERPLUGINS/$file.part" "https://github.com/$repo/releases/latest/download/$file" \
-      && mv "$USERPLUGINS/$file.part" "$USERPLUGINS/$file" || { rm -f "$USERPLUGINS/$file.part"; echo "  download failed: $file"; exit 1; }
-    xattr -d com.apple.quarantine "$USERPLUGINS/$file" 2>/dev/null || true
-  done
-  echo "  installed in $USERPLUGINS (REAPER: Extensions > ReaPack)"
+  local arch plat; arch=$(uname -m)
+  if [ "$arch" = arm64 ]; then plat=darwin-arm64; else arch=x86_64; plat=darwin64; fi
+  mkdir -p "$RESOURCE/UserPlugins"
+  local rp="$RESOURCE/UserPlugins/reaper_reapack-$arch.dylib"
+  echo "- ReaPack ($arch)"
+  curl -fsSL --retry 3 -o "$rp.part" "https://github.com/cfillion/reapack/releases/latest/download/reaper_reapack-$arch.dylib" \
+    && mv "$rp.part" "$rp" || { rm -f "$rp.part"; echo "  download failed: ReaPack"; exit 1; }
+  curl -fsSL --retry 3 -o "$TMP/packages.txt" "$BASE/reaper-packages.txt" || { echo "  download failed: $BASE/reaper-packages.txt"; exit 1; }
+  echo "- SWS, js_ReaScriptAPI, ReaImGui, pie menu (Pie3000), nvk_SEARCH"
+  local p path url n=0
+  while IFS=$'\t' read -r p path url; do
+    [ -n "$url" ] || continue
+    [ "$p" = "*" ] || [ "$p" = "$plat" ] || continue
+    mkdir -p "$(dirname "$RESOURCE/$path")"
+    curl -fsSL --retry 3 -o "$RESOURCE/$path.part" "$url" && mv "$RESOURCE/$path.part" "$RESOURCE/$path" \
+      || { rm -f "$RESOURCE/$path.part"; echo "  download failed: $url"; exit 1; }
+    xattr -d com.apple.quarantine "$RESOURCE/$path" 2>/dev/null || true
+    n=$((n + 1))
+  done < "$TMP/packages.txt"
+  echo "  $n files installed in $RESOURCE"
 }
 
 echo "Objet suite: installing from $BASE"

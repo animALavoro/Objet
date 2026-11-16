@@ -1,7 +1,7 @@
 # Objet suite - installer for Windows.
 #   irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1 | iex
 #   & ([scriptblock]::Create((irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1))) pa
-#        only Objet Pa (also: plugins = the three plugins, scene, monitor, otio, polywav = Polywav Manager script, ext = ReaPack + ReaImGui); a second argument is a version (tag <part>-<version>, or suite-<version>)
+#        only Objet Pa (also: plugins = the three plugins, scene, monitor, otio, polywav = Polywav Manager script, ext = ReaPack, SWS, js_ReaScriptAPI, ReaImGui, pie menu, nvk_SEARCH); a second argument is a version (tag <part>-<version>, or suite-<version>)
 # The plugins go to C:\Program Files\Common Files\VST3 (the standard VST3 folder: Windows asks once for permission),
 # the OTIO to RPP app to your own programs folder with a Start menu shortcut.
 param([string]$What = "all", [string]$Version = "")
@@ -65,18 +65,33 @@ function Install-Polywav {
     Write-Host "  installed in $scripts\Polywav Manager (REAPER: Actions > New action > Load ReaScript, the first time)"
 }
 
-# REAPER extensions from their own releases (not from this repository): ReaPack (packages: SWS, scripts) and ReaImGui
+# REAPER extensions and scripts, from their own sources (not from this repository): ReaPack (from its releases), then
+# the files listed in reaper-packages.txt (made at release time from the ReaPack indexes: SWS, js_ReaScriptAPI,
+# ReaImGui, the pie menu, nvk_SEARCH), in the same places where ReaPack puts them
 function Install-Ext {
-    $up = Join-Path $env:APPDATA "REAPER\UserPlugins"
+    $res = Join-Path $env:APPDATA "REAPER"
+    $up = Join-Path $res "UserPlugins"
     New-Item -ItemType Directory -Force $up | Out-Null
-    foreach ($f in @(@("cfillion/reapack", "reaper_reapack-x64.dll"), @("cfillion/reaimgui", "reaper_imgui-x64.dll"))) {
-        Write-Host "- $($f[1])"
-        $dest = Join-Path $up $f[1]
-        Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/$($f[0])/releases/latest/download/$($f[1])" -OutFile "$dest.part"
+    Write-Host "- ReaPack"
+    $dest = Join-Path $up "reaper_reapack-x64.dll"
+    Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/cfillion/reapack/releases/latest/download/reaper_reapack-x64.dll" -OutFile "$dest.part"
+    Move-Item -Force "$dest.part" $dest
+    Unblock-File $dest
+    $list = Join-Path $tmp "packages.txt"
+    Invoke-WebRequest -UseBasicParsing -Uri "$Base/reaper-packages.txt" -OutFile $list
+    Write-Host "- SWS, js_ReaScriptAPI, ReaImGui, pie menu (Pie3000), nvk_SEARCH"
+    $n = 0
+    foreach ($line in Get-Content $list) {
+        $f = $line -split "`t"
+        if ($f.Count -lt 3 -or ($f[0] -ne "*" -and $f[0] -ne "win64")) { continue }
+        $dest = Join-Path $res ($f[1] -replace "/", "\")
+        New-Item -ItemType Directory -Force (Split-Path $dest) | Out-Null
+        Invoke-WebRequest -UseBasicParsing -Uri $f[2] -OutFile "$dest.part"
         Move-Item -Force "$dest.part" $dest
         Unblock-File $dest
+        $n++
     }
-    Write-Host "  installed in $up (REAPER: Extensions > ReaPack)"
+    Write-Host "  $n files installed in $res"
 }
 
 Write-Host "Objet suite: installing from $Base"
