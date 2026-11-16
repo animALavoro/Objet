@@ -1,0 +1,26 @@
+name: Refresh REAPER packages list
+
+# By hand: rebuilds reaper-packages.txt (tools/reaper_packages.py) and replaces it in an existing release,
+# without rebuilding the plugins.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, e.g. suite-2026.11.17"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          python3 tools/reaper_packages.py reaper-packages.txt
+          gh release upload "$TAG" reaper-packages.txt install-mac.sh install-windows.ps1 --clobber --repo "$GITHUB_REPOSITORY"
