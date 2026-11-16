@@ -1,6 +1,7 @@
 name: Refresh REAPER packages list
 
-# By hand: rebuilds reaper-packages.txt (tools/reaper_packages.py) and replaces it in an existing release,
+# By hand: rebuilds reaper-packages.txt (tools/reaper_packages.py) and replaces it, the installers and the course
+# configuration (kit/) in an existing release,
 # without rebuilding the plugins.
 
 on:
@@ -23,4 +24,4 @@ jobs:
           TAG: ${{ inputs.tag }}
         run: |
           python3 tools/reaper_packages.py reaper-packages.txt
-          gh release upload "$TAG" reaper-packages.txt install-mac.sh install-windows.ps1 --clobber --repo "$GITHUB_REPOSITORY"
+          gh release upload "$TAG" reaper-packages.txt install-mac.sh install-windows.ps1 kit/* --clobber --repo "$GITHUB_REPOSITORY"

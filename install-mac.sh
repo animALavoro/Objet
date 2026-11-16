@@ -65,7 +65,7 @@ otio() {
   echo "  installed in $APPS/OTIO to RPP.app (Finder > Go > Home > Applications)"
 }
 
-# the Polywav Manager script, in REAPER's Scripts folder (loaded once with Actions > New action > Load ReaScript)
+# the Polywav Manager script, in REAPER's Scripts folder (registered as an action by the course configuration)
 polywav() {
   echo "- Polywav Manager (script)"
   curl -fL --retry 3 --progress-bar -o "$TMP/polywav.zip" "$BASE/Polywav-Manager.zip" || { echo "  download failed: $BASE/Polywav-Manager.zip"; exit 1; }
@@ -75,7 +75,7 @@ polywav() {
   mkdir -p "$SCRIPTS"
   rm -rf "$SCRIPTS/Polywav Manager"
   ditto "$TMP/p/Polywav Manager" "$SCRIPTS/Polywav Manager"
-  echo "  installed in $SCRIPTS/Polywav Manager (REAPER: Actions > New action > Load ReaScript, the first time)"
+  echo "  installed in $SCRIPTS/Polywav Manager (action list: Polywav Manager)"
 }
 
 # REAPER extensions and scripts, from their own sources (not from this repository): ReaPack (from its releases), then

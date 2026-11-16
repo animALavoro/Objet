@@ -53,7 +53,7 @@ function Install-Otio {
     Write-Host "  OTIO to RPP installed: Start menu > OTIO to RPP"
 }
 
-# the Polywav Manager script, in REAPER's Scripts folder (loaded once with Actions > New action > Load ReaScript)
+# the Polywav Manager script, in REAPER's Scripts folder (registered as an action by the course configuration)
 function Install-Polywav {
     $dir = Get-Part "Polywav-Manager.zip"
     $src = Join-Path $dir "Polywav Manager"
@@ -62,7 +62,7 @@ function Install-Polywav {
     New-Item -ItemType Directory -Force $scripts | Out-Null
     Remove-Item -Recurse -Force -ErrorAction SilentlyContinue (Join-Path $scripts "Polywav Manager")
     Copy-Item -Recurse -Force $src $scripts
-    Write-Host "  installed in $scripts\Polywav Manager (REAPER: Actions > New action > Load ReaScript, the first time)"
+    Write-Host "  installed in $scripts\Polywav Manager (action list: Polywav Manager)"
 }
 
 # REAPER extensions and scripts, from their own sources (not from this repository): ReaPack (from its releases), then

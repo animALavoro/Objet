@@ -31,16 +31,15 @@ local function cmd(id, name)
 end
 local pie = cmd("_RS2039f6a463e791b26b83664161168a2f34203c16", "Pie3000 (key C)")
 local nvk = cmd("_RS42ab70fd2ac65e9a003787709bb85f18c36dee52", "nvk_SEARCH (key *)")
-local pw = reaper.AddRemoveReaScript(true, 0, res .. "/Scripts/Polywav Manager/Polywav Manager.lua", true)
-log("Polywav Manager registered: " .. pw)
+local pw = cmd("_RSe58199659d1dd72df9f3454fa92592fb6411358d", "Polywav Manager (from the course configuration)")
 cmd("_S&M_TAKEENVSHOW1", "SWS take envelope (key T)")
 cmd("_XENAKIOS_SELFIRSTITEMSOFTRACKS", "SWS Xenakios (in Tab)")
 
 local phases = {
   { "start", function() end },
   { "pie3000", function() if pie ~= 0 then reaper.Main_OnCommand(pie, 0) end end },
-  { "nvk-search", function() if nvk ~= 0 then reaper.Main_OnCommand(nvk, 0) end end },
   { "polywav-manager", function() if pw ~= 0 then reaper.Main_OnCommand(pw, 0) end end },
+  { "nvk-search", function() if nvk ~= 0 then reaper.Main_OnCommand(nvk, 0) end end },   -- last: its licence windows
   { "later", function() end },
 }
 

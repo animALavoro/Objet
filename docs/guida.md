@@ -137,7 +137,7 @@ Uno script per REAPER: per gli item che suonano i **polywav** del registratore (
 
 Usa **SWS**, **ReaImGui** e **js_ReaScriptAPI**, già installati dal capitolo 4.
 
-1. La prima volta: *Actions > Show action list… > New action > Load ReaScript…* → `Scripts/Polywav Manager/Polywav Manager.lua` (nella cartella delle risorse di REAPER: *Options > Show REAPER resource path*). Poi lo trovi nella lista delle azioni come *Polywav Manager*.
+1. Con la configurazione del corso importata (capitolo 5) è già nella lista delle azioni: *Actions > Show action list…* → cerca *Polywav Manager*. Senza la configurazione: *New action > Load ReaScript…* → `Scripts/Polywav Manager/Polywav Manager.lua` (nella cartella delle risorse di REAPER: *Options > Show REAPER resource path*), una volta.
 2. Seleziona gli item dei polywav (o le tracce), scegli la cartella dei mono, **Analyze selection**.
 3. Controlla l'anteprima (file trovato per ogni canale, dove va, cosa manca), poi **Apply**: tutto in un solo passo di undo.
 

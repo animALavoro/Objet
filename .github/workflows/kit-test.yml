@@ -83,6 +83,7 @@ jobs:
                 repeat with w in every window
                   try
                     set t to (value of every static text of w as text)
+                    if t contains "License Key" then set found to found & "nvk licence window" & linefeed
                     if t contains "install" or t contains "Error" or t contains "required" or t contains "missing" then
                       set found to found & t & linefeed
                       try
@@ -94,6 +95,14 @@ jobs:
                 return found
               end tell' > "shots/$n-problems.txt" 2>&1 || true
             [ -s "shots/$n-problems.txt" ] && { echo "PROBLEM in phase $n:"; cat "shots/$n-problems.txt"; }
+            # nvk_SEARCH's licence window (a key per person, from nvk): recorded above, cancelled to go on
+            osascript -e 'tell application "System Events" to tell process "REAPER"
+                repeat with w in (every window whose name is "nvk_SEARCH")
+                  try
+                    if exists (text field "License Key" of w) then click button "Cancel" of w
+                  end try
+                end repeat
+              end tell' >> "shots/$n-problems.txt" 2>&1 || true
             osascript -e 'tell application "System Events" to get name of every window of process "REAPER"' > "shots/$n-windows.txt" 2>&1 || true
             osascript -e 'tell application "System Events" to tell process "REAPER" to get value of every static text of every window' > "shots/$n-texts.txt" 2>&1 || true
             touch "$TMPDIR/kit_ack_$n"
