@@ -57,9 +57,11 @@ jobs:
                     click (first button of w whose subrole is "AXCloseButton")
                   end try
                 end repeat
-                try
-                  if exists (button "No" of front window) and (name of front window) contains "audio" then click button "No" of front window
-                end try
+                repeat with w in every window
+                  try
+                    if (value of every static text of w as text) contains "audio device" then click button "No" of w
+                  end try
+                end repeat
               end tell' >> dialogs.txt 2>&1 || true
               sleep 1
             done ) &
