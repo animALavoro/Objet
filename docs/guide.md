@@ -12,8 +12,9 @@ Objet is a set of tools for immersive sound in REAPER: a multichannel and Ambiso
 5. [The course's REAPER configuration and extensions](#5-the-courses-reaper-configuration-and-extensions)
 6. [First steps](#6-first-steps)
 7. [From a Resolve timeline to REAPER (OTIO to RPP)](#7-from-a-resolve-timeline-to-reaper-otio-to-rpp)
-8. [Updating and uninstalling](#8-updating-and-uninstalling)
-9. [Common problems](#9-common-problems)
+8. [Splitting the recorder's polywav files (Polywav Manager)](#8-splitting-the-recorders-polywav-files-polywav-manager)
+9. [Updating and uninstalling](#9-updating-and-uninstalling)
+10. [Common problems](#10-common-problems)
 
 ---
 
@@ -25,6 +26,7 @@ Objet is a set of tools for immersive sound in REAPER: a multichannel and Ambiso
 | **Objet a Scene** | Every panner of the project in one room or globe, loudness (EBU R 128), energy map, changes on many panners at once (PROJECT page). | Once, on the master |
 | **Objet a Monitor** | Headphone (binaural) listening of what the master plays, 360 view of the video, headset. | Once, on the master (after Scene) |
 | **OTIO to RPP** | An app that turns a timeline exported from Resolve (`.otio`) into a REAPER project (`.rpp`). | A separate app |
+| **Polywav Manager** | A REAPER script: puts the mono file of each channel of the recorder's polywav files on its own track. | REAPER's action list |
 
 The three plugins are VST3 and run in REAPER on Windows and macOS.
 
@@ -52,7 +54,7 @@ One line installs everything, always with **REAPER closed**. The same line also 
    ```
    curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash
    ```
-3. It installs the three plugins in `~/Library/Audio/Plug-Ins/VST3`, the *OTIO to RPP* app in your own Applications folder (Finder > Go > Home > Applications) and the REAPER extensions **ReaPack** and **ReaImGui**. No password needed.
+3. It installs the three plugins in `~/Library/Audio/Plug-Ins/VST3`, the *OTIO to RPP* app in your own Applications folder (Finder > Go > Home > Applications), the *Polywav Manager* script in REAPER's Scripts folder and the REAPER extensions **ReaPack** and **ReaImGui**. No password needed.
 4. Open REAPER: *REAPER > Settings > Plug-ins > VST* → **Clear cache/re-scan**.
 
 **Why the Terminal?** The plugins have no Apple developer signature: if you download them with a browser, macOS blocks them. Files downloaded by the Terminal open normally. If you already downloaded a zip with a browser and REAPER shows *"… Not Opened. Apple could not verify …"* at startup (the message comes back every time you press **Done**), leave it there, open Terminal and run:
@@ -67,7 +69,7 @@ xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/"LB Spanner.vst3"
    ```
    irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1 | iex
    ```
-3. Windows asks once for permission to make changes: answer **Yes**. The plugins go to `C:\Program Files\Common Files\VST3`, the *OTIO to RPP* app to the Start menu, the **ReaPack** and **ReaImGui** extensions to REAPER's folder.
+3. Windows asks once for permission to make changes: answer **Yes**. The plugins go to `C:\Program Files\Common Files\VST3`, the *OTIO to RPP* app to the Start menu, the *Polywav Manager* script and the **ReaPack** and **ReaImGui** extensions to REAPER's folder.
    If you answer No, the plugins go to your user folder and the script tells you which path to add in REAPER.
 4. Open REAPER: *Options > Preferences > Plug-ins > VST* → **Clear cache/re-scan**.
 
@@ -131,18 +133,30 @@ In Objet Pa: **Setup** → **Web remote** → scan the **QR code** with the iPad
 2. Open **OTIO to RPP** (Mac: your own Applications; Windows: Start menu).
 3. **OTIO file**: the exported file. **Reaper project**: where to save the `.rpp` (same name proposed).
 4. **Look for media in** (optional): if the audio files are no longer where they were during editing, the app looks for them by name in this folder.
-5. With **Copy media to the "Media" folder** (on by default) the files used are copied next to the project: the project folder can be moved or taken to another computer.
+5. With **Copy media to the "Media" folder** (on by default) the files used are copied next to the project: the project folder can be moved or taken to another computer. Of video files only the audio is copied, never the video.
 6. **Convert**, then **Open in Reaper**.
 
 Converted: audio tracks, clips (position, length, offset), disabled clips, linear speed changes, dissolves and the start timecode. Not converted: video, markers, compound clips, clip volume / pan, channel mapping; they are listed in the message box.
 
-## 8. Updating and uninstalling
+## 8. Splitting the recorder's polywav files (Polywav Manager)
+
+A script for REAPER: for the items that play the recorder's **polywav** files (one file with every microphone of the take), it looks in a folder for the **mono files** of the single channels (by iXML, file name and metadata) and puts each microphone on its own track, with the same position, offset and fades. The track with the polywav stays.
+
+It needs **SWS** (chapter 5); **js_ReaScriptAPI** (from ReaPack) is optional and lets you pick the folder with a dialog.
+
+1. The first time: *Actions > Show action list… > New action > Load ReaScript…* → `Scripts/Polywav Manager/Polywav Manager.lua` (in REAPER's resource folder: *Options > Show REAPER resource path*). Then it is in the action list as *Polywav Manager*.
+2. Select the polywav items (or tracks), choose the folder of the mono files, **Analyze selection**.
+3. Check the preview (the file found for each channel, where it goes, what is missing), then **Apply**: everything in one undo step.
+
+Details in the script's README, in the same folder (`README.md`).
+
+## 9. Updating and uninstalling
 
 - **Update**: run the same line of chapter 4 again, with REAPER closed.
-- **Uninstall on a Mac**: delete `LB Spanner.vst3`, `Objet a Scene.vst3`, `Objet a Monitor.vst3` from `~/Library/Audio/Plug-Ins/VST3` and *OTIO to RPP* from your own Applications.
-- **Uninstall on Windows**: delete the three `.vst3` folders from `C:\Program Files\Common Files\VST3`, the folder `%LOCALAPPDATA%\Programs\OTIO to RPP` and the Start menu shortcut.
+- **Uninstall on a Mac**: delete `LB Spanner.vst3`, `Objet a Scene.vst3`, `Objet a Monitor.vst3` from `~/Library/Audio/Plug-Ins/VST3` and *OTIO to RPP* from your own Applications; the script: the folder `~/Library/Application Support/REAPER/Scripts/Polywav Manager`.
+- **Uninstall on Windows**: delete the three `.vst3` folders from `C:\Program Files\Common Files\VST3`, the folder `%LOCALAPPDATA%\Programs\OTIO to RPP` and the Start menu shortcut; the script: the folder `%APPDATA%\REAPER\Scripts\Polywav Manager`.
 
-## 9. Common problems
+## 10. Common problems
 
 | Problem | Solution |
 |---|---|

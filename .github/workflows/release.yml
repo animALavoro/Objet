@@ -4,8 +4,9 @@ name: Release
 # contents read-only), for Windows and macOS (universal arm64 + x86_64, ad-hoc signature), and publishes:
 #  - what = all: one release of the suite, tag suite-<version>; marked latest (what the install line uses) only with
 #    "latest" ticked: otherwise it is tried first with "| bash -s -- all <version>", then Edit release > Set as latest;
-#  - what = pa / scene / monitor / otio: a release of that one only, tag <what>-<version>, not marked latest.
-# The suite: the three VST3 plugins and the OTIO -> RPP app (Windows .exe, macOS .app for Apple silicon).
+#  - what = pa / scene / monitor / otio / polywav: a release of that one only, tag <what>-<version>, not marked latest.
+# The suite: the three VST3 plugins, the OTIO -> RPP app (Windows .exe, macOS .app for Apple silicon) and the
+# Polywav Manager script for REAPER (Lua, same zip for both systems).
 # This repository is public: GitHub Actions minutes are free here, macOS included.
 
 on:
@@ -14,7 +15,7 @@ on:
       what:
         description: "all = the suite; or one plugin only"
         type: choice
-        options: [all, pa, scene, monitor, otio]
+        options: [all, pa, scene, monitor, otio, polywav]
         default: all
       version:
         description: "Version, e.g. 2026.11.10 (suite) or v0.2.0 (one plugin); any text when not publishing"
@@ -30,6 +31,9 @@ on:
         default: main
       otio_ref:
         description: "OTIO-to-RPP: branch, tag or commit"
+        default: main
+      polywav_ref:
+        description: "polywav_manager: branch, tag or commit"
         default: main
       publish:
         description: "Publish a release. Off: build and test only (zips in the run's artifacts), e.g. to check a branch on macOS"
@@ -166,18 +170,19 @@ jobs:
           python -m pip install pyinstaller==6.22.3
           python converter.py esempio.otio esempio.rpp
           test -s esempio.rpp
+          test -f resolve_export_reaper.py        # the app installs it in Resolve's Scripts menu (packed with --add-data)
 
       - name: Build (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          python -m PyInstaller --noconfirm --onefile --windowed --name "OTIO to RPP" app.py
+          python -m PyInstaller --noconfirm --onefile --windowed --name "OTIO to RPP" --add-data "resolve_export_reaper.py:." app.py
           Compress-Archive -Path "dist/OTIO to RPP.exe" -DestinationPath OTIO-to-RPP-Windows.zip
 
       - name: Build (macOS)
         if: runner.os == 'macOS'
         run: |
-          python -m PyInstaller --noconfirm --windowed --name "OTIO to RPP" --osx-bundle-identifier com.lucabagetto.otio-to-rpp app.py
+          python -m PyInstaller --noconfirm --windowed --name "OTIO to RPP" --osx-bundle-identifier com.lucabagetto.otio-to-rpp --add-data "resolve_export_reaper.py:." app.py
           codesign --force --deep --sign - "dist/OTIO to RPP.app"
           codesign --verify --deep --strict "dist/OTIO to RPP.app"
           ditto -c -k --keepParent "dist/OTIO to RPP.app" OTIO-to-RPP-macOS.zip
@@ -187,12 +192,41 @@ jobs:
           name: OTIO-to-RPP-${{ runner.os }}
           path: OTIO-to-RPP-*.zip
 
+  # the Polywav Manager script (Lua): its tests, then one zip with the folder "Polywav Manager" for REAPER's Scripts
+  polywav:
+    needs: plan
+    if: inputs.what == 'all' || inputs.what == 'polywav'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: animALavoro/polywav_manager
+          ref: ${{ inputs.polywav_ref }}
+          token: ${{ secrets.SOURCE_TOKEN }}
+          persist-credentials: false
+          path: src
+
+      - name: Tests and zip
+        run: |
+          sudo apt-get install -y -qq lua5.4 > /dev/null
+          (cd src && lua5.4 tests/run_tests.lua && lua5.4 tests/project_tests.lua)
+          mkdir -p "pkg/Polywav Manager"
+          cp -R "src/Polywav Manager.lua" src/polywav_manager src/README.md src/README.it.md "pkg/Polywav Manager/"
+          (cd pkg && zip -qr ../Polywav-Manager.zip "Polywav Manager")
+          unzip -l Polywav-Manager.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Polywav-Manager
+          path: Polywav-Manager.zip
+
   release:
-    needs: [plan, build, otio]
+    needs: [plan, build, otio, polywav]
     if: >-
       always() && inputs.publish && needs.plan.result == 'success'
       && (needs.build.result == 'success' || needs.build.result == 'skipped')
       && (needs.otio.result == 'success' || needs.otio.result == 'skipped')
+      && (needs.polywav.result == 'success' || needs.polywav.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

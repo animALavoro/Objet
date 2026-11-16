@@ -1,7 +1,7 @@
 # Objet suite - installer for Windows.
 #   irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1 | iex
 #   & ([scriptblock]::Create((irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1))) pa
-#        only Objet Pa (also: plugins = the three plugins, scene, monitor, otio, ext = ReaPack + ReaImGui); a second argument is a version (tag <part>-<version>, or suite-<version>)
+#        only Objet Pa (also: plugins = the three plugins, scene, monitor, otio, polywav = Polywav Manager script, ext = ReaPack + ReaImGui); a second argument is a version (tag <part>-<version>, or suite-<version>)
 # The plugins go to C:\Program Files\Common Files\VST3 (the standard VST3 folder: Windows asks once for permission),
 # the OTIO to RPP app to your own programs folder with a Start menu shortcut.
 param([string]$What = "all", [string]$Version = "")
@@ -9,7 +9,7 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"            # Invoke-WebRequest is much faster without the progress bar
 
 $Repo = "animALavoro/Objet"
-if ($What -notin @("all", "plugins", "pa", "scene", "monitor", "otio", "ext")) { Write-Host "Unknown part '$What': use all, plugins, pa, scene, monitor, otio or ext."; return }
+if ($What -notin @("all", "plugins", "pa", "scene", "monitor", "otio", "polywav", "ext")) { Write-Host "Unknown part '$What': use all, plugins, pa, scene, monitor, otio, polywav or ext."; return }
 if ($Version -ne "") {
     $tag = if ($What -in @("all", "plugins")) { "suite-$Version" } else { "$What-$Version" }
     $Base = "https://github.com/$Repo/releases/download/$tag"
@@ -51,6 +51,18 @@ function Install-Otio {
     $sh = New-Object -ComObject WScript.Shell
     $s = $sh.CreateShortcut($lnk); $s.TargetPath = (Join-Path $dest "OTIO to RPP.exe"); $s.Save()
     Write-Host "  OTIO to RPP installed: Start menu > OTIO to RPP"
+}
+
+# the Polywav Manager script, in REAPER's Scripts folder (loaded once with Actions > New action > Load ReaScript)
+function Install-Polywav {
+    $dir = Get-Part "Polywav-Manager.zip"
+    $src = Join-Path $dir "Polywav Manager"
+    if (-not (Test-Path (Join-Path $src "Polywav Manager.lua"))) { throw "Polywav Manager.lua not found in the zip" }
+    $scripts = Join-Path $env:APPDATA "REAPER\Scripts"
+    New-Item -ItemType Directory -Force $scripts | Out-Null
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue (Join-Path $scripts "Polywav Manager")
+    Copy-Item -Recurse -Force $src $scripts
+    Write-Host "  installed in $scripts\Polywav Manager (REAPER: Actions > New action > Load ReaScript, the first time)"
 }
 
 # REAPER extensions from their own releases (not from this repository): ReaPack (packages: SWS, scripts) and ReaImGui
@@ -97,6 +109,7 @@ if ($plugins.Count -gt 0) {
     }
 }
 if ($What -in @("all", "otio")) { Install-Otio }
+if ($What -in @("all", "polywav")) { Install-Polywav }
 if ($What -in @("all", "ext"))  { Install-Ext }
 
 Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $tmp

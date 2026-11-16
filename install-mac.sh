@@ -2,7 +2,7 @@
 # Objet suite - installer for macOS.
 #   curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash
 #   ... | bash -s -- plugins       only the three plugins (Objet Pa, Objet a Scene, Objet a Monitor)
-#   ... | bash -s -- pa            only Objet Pa (also: scene, monitor, otio, ext = ReaPack + ReaImGui)
+#   ... | bash -s -- pa            only Objet Pa (also: scene, monitor, otio, polywav = Polywav Manager script, ext = ReaPack + ReaImGui)
 #   ... | bash -s -- pa v0.2.0     a release of one plugin (tag pa-v0.2.0)
 # Downloads with curl (no quarantine flag), installs in the user's own folders: no administrator password.
 set -euo pipefail
@@ -13,12 +13,13 @@ VERSION="${2:-}"
 VST3="$HOME/Library/Audio/Plug-Ins/VST3"
 APPS="$HOME/Applications"
 USERPLUGINS="$HOME/Library/Application Support/REAPER/UserPlugins"
+SCRIPTS="$HOME/Library/Application Support/REAPER/Scripts"
 
 [ "$(uname -s)" = "Darwin" ] || { echo "This installer is for macOS."; exit 1; }
 
 case "$WHAT" in
-  all|plugins|pa|scene|monitor|otio|ext) ;;
-  *) echo "Unknown part '$WHAT': use all, plugins, pa, scene, monitor, otio or ext."; exit 1 ;;
+  all|plugins|pa|scene|monitor|otio|polywav|ext) ;;
+  *) echo "Unknown part '$WHAT': use all, plugins, pa, scene, monitor, otio, polywav or ext."; exit 1 ;;
 esac
 
 if [ -n "$VERSION" ]; then
@@ -63,6 +64,19 @@ otio() {
   echo "  installed in $APPS/OTIO to RPP.app (Finder > Go > Home > Applications)"
 }
 
+# the Polywav Manager script, in REAPER's Scripts folder (loaded once with Actions > New action > Load ReaScript)
+polywav() {
+  echo "- Polywav Manager (script)"
+  curl -fL --retry 3 --progress-bar -o "$TMP/polywav.zip" "$BASE/Polywav-Manager.zip" || { echo "  download failed: $BASE/Polywav-Manager.zip"; exit 1; }
+  rm -rf "$TMP/p" && mkdir "$TMP/p"
+  ditto -x -k "$TMP/polywav.zip" "$TMP/p"
+  [ -f "$TMP/p/Polywav Manager/Polywav Manager.lua" ] || { echo "  Polywav Manager.lua not found in the zip"; exit 1; }
+  mkdir -p "$SCRIPTS"
+  rm -rf "$SCRIPTS/Polywav Manager"
+  ditto "$TMP/p/Polywav Manager" "$SCRIPTS/Polywav Manager"
+  echo "  installed in $SCRIPTS/Polywav Manager (REAPER: Actions > New action > Load ReaScript, the first time)"
+}
+
 # REAPER extensions from their own releases (not from this repository): ReaPack (packages: SWS, scripts) and ReaImGui
 ext() {
   local arch; arch=$(uname -m); [ "$arch" = arm64 ] || arch=x86_64
@@ -83,6 +97,7 @@ case "$WHAT" in
            plugin Objet-a-Scene-macOS.zip "Objet a Scene.vst3" "Objet a Scene"
            plugin Objet-a-Monitor-macOS.zip "Objet a Monitor.vst3" "Objet a Monitor"
            otio
+           polywav
            ext ;;
   plugins) plugin Objet-Pa-macOS.zip "LB Spanner.vst3" "Objet Pa"
            plugin Objet-a-Scene-macOS.zip "Objet a Scene.vst3" "Objet a Scene"
@@ -91,6 +106,7 @@ case "$WHAT" in
   scene)   plugin Objet-a-Scene-macOS.zip "Objet a Scene.vst3" "Objet a Scene" ;;
   monitor) plugin Objet-a-Monitor-macOS.zip "Objet a Monitor.vst3" "Objet a Monitor" ;;
   otio)    otio ;;
+  polywav) polywav ;;
   ext)     ext ;;
 esac
 

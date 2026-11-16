@@ -1,6 +1,6 @@
 # Objet
 
-Strumenti di audio spaziale per REAPER, di Luca Bagetto: **Objet Pa** (panner multicanale e Ambisonics, con i puck sul video), **Objet a Scene** (tutto il mix in una stanza o in un globo, loudness, cambi su molti panner insieme), **Objet a Monitor** (monitor binaurale, vista 360, visore) e **OTIO to RPP** (un'app che trasforma una timeline di Resolve in un progetto REAPER). VST3 per REAPER 7 su Windows e macOS (universale: Apple silicon e Intel, macOS 11 o successivo).
+Strumenti di audio spaziale per REAPER, di Luca Bagetto: **Objet Pa** (panner multicanale e Ambisonics, con i puck sul video), **Objet a Scene** (tutto il mix in una stanza o in un globo, loudness, cambi su molti panner insieme), **Objet a Monitor** (monitor binaurale, vista 360, visore) e **OTIO to RPP** (un'app che trasforma una timeline di Resolve in un progetto REAPER) e **Polywav Manager** (uno script per REAPER che mette i mono dei polywav del registratore ognuno sulla sua traccia). VST3 per REAPER 7 su Windows e macOS (universale: Apple silicon e Intel, macOS 11 o successivo).
 
 **Guida per gli studenti: [Italiano](docs/guida.md) · [English](docs/guide.md)**
 
@@ -17,12 +17,12 @@ curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install
 ```
 irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1 | iex
 ```
-Tutte e due installano i tre plugin, l'app OTIO to RPP e le estensioni di REAPER ReaPack e ReaImGui, dall'ultima release. Su Windows, Windows chiede una volta il permesso (i plugin vanno in `C:\Program Files\Common Files\VST3`). Poi in REAPER: *Plug-ins > VST > Clear cache/re-scan*. La guida ha i dettagli, la configurazione di REAPER del corso e le estensioni da aggiungere da ReaPack.
+Tutte e due installano i tre plugin, l'app OTIO to RPP, lo script Polywav Manager e le estensioni di REAPER ReaPack e ReaImGui, dall'ultima release. Su Windows, Windows chiede una volta il permesso (i plugin vanno in `C:\Program Files\Common Files\VST3`). Poi in REAPER: *Plug-ins > VST > Clear cache/re-scan*. La guida ha i dettagli, la configurazione di REAPER del corso e le estensioni da aggiungere da ReaPack.
 
 - **Solo i tre plugin** (senza app né estensioni):
   - macOS: `curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash -s -- plugins`
   - Windows: `& ([scriptblock]::Create((irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1))) plugins`
-- Una parte sola: `pa`, `scene`, `monitor`, `otio` oppure `ext` (ReaPack + ReaImGui) al posto di `plugins`.
+- Una parte sola: `pa`, `scene`, `monitor`, `otio`, `polywav` oppure `ext` (ReaPack + ReaImGui) al posto di `plugins`.
 - Una versione precisa: aggiungila dopo la parte, per esempio `bash -s -- all 2026.11.12-mac3`.
 
 **macOS, scaricato con il browser**: i plugin hanno una firma ad-hoc (nessun account sviluppatore Apple), quindi macOS blocca una copia scaricata. Copia il `.vst3` in `~/Library/Audio/Plug-Ins/VST3/` e sbloccalo dal Terminale, per esempio `xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/"LB Spanner.vst3"`. Se REAPER è già fermo all'avvio su *"… Not Opened. Apple could not verify …"* (il messaggio torna a ogni **Done**), lancia quella riga mentre il messaggio è a schermo, poi premi **Done** una volta.
