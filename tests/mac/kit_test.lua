@@ -32,7 +32,11 @@ end
 local pie = cmd("_RS2039f6a463e791b26b83664161168a2f34203c16", "Pie3000 (key C)")
 local nvk = cmd("_RS42ab70fd2ac65e9a003787709bb85f18c36dee52", "nvk_SEARCH (key *)")
 local pw = reaper.AddRemoveReaScript(true, 0, res .. "/Scripts/Polywav Manager/Polywav Manager.lua", true)
-log("Polywav Manager registered: " .. pw)
+log("Polywav Manager registered: " .. pw .. " = _" .. tostring(reaper.ReverseNamedCommandLookup(pw)))
+do
+  local h = io.open(res .. "/reaper-kb.ini", "r")
+  if h then for line in h:lines() do if line:find("Polywav", 1, true) then log("kb: " .. line) end end h:close() end
+end
 cmd("_S&M_TAKEENVSHOW1", "SWS take envelope (key T)")
 cmd("_XENAKIOS_SELFIRSTITEMSOFTRACKS", "SWS Xenakios (in Tab)")
 
