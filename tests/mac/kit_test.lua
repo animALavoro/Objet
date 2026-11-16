@@ -18,7 +18,8 @@ if reaper.CF_GetSWSVersion then log("SWS " .. reaper.CF_GetSWSVersion()) end
 if reaper.JS_ReaScriptAPI_Version then log("js " .. reaper.JS_ReaScriptAPI_Version()) end
 if reaper.ImGui_GetVersion then log("ImGui " .. tostring(select(1, reaper.ImGui_GetVersion()))) end
 for _, p in ipairs({ "Scripts/ReaTeam Extensions/API/imgui.lua", "Scripts/Sexan_Scripts/Pie3000/Sexan_Pie3000.lua",
-                     "Scripts/nvk-ReaScripts/SEARCH/nvk_SEARCH.lua", "Scripts/Polywav Manager/Polywav Manager.lua",
+                     "Scripts/nvk-ReaScripts/SEARCH/nvk_SEARCH.lua",
+                     "Scripts/nvk-ReaScripts/SHARED/nvk_SHARED.lua", "Scripts/Polywav Manager/Polywav Manager.lua",
                      "Scripts/Sexan_Scripts/Pie3000/pie_file.txt" }) do
   log((exists(res .. "/" .. p) and "ok   " or "FAIL ") .. p)
 end
@@ -46,13 +47,13 @@ local phases = {
 local n, t0, waiting = 0, reaper.time_precise(), false
 local function step()
   if waiting then
-    if exists(tmp .. "/kit_ack_" .. n) or reaper.time_precise() - t0 > 120 then waiting = false; t0 = reaper.time_precise() end
+    if exists(tmp .. "/kit_ack_" .. n) or reaper.time_precise() - t0 > 60 then waiting = false; t0 = reaper.time_precise() end
   elseif reaper.time_precise() - t0 > 6 then
     n = n + 1
     if n > #phases then log("done") f:close() reaper.Main_OnCommand(40004, 0) return end   -- File: Quit
     log("phase " .. n .. " " .. phases[n][1])
+    local h = io.open(tmp .. "/kit_phase_" .. n, "w") h:write(phases[n][1]) h:close()   -- first: a script can block here
     phases[n][2]()
-    local h = io.open(tmp .. "/kit_phase_" .. n, "w") h:write(phases[n][1]) h:close()
     waiting = true; t0 = reaper.time_precise()
   end
   reaper.defer(step)

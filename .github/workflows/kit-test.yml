@@ -57,9 +57,11 @@ jobs:
                     click (first button of w whose subrole is "AXCloseButton")
                   end try
                 end repeat
-                try
-                  if exists (button "No" of front window) and (name of front window) contains "audio" then click button "No" of front window
-                end try
+                repeat with w in every window
+                  try
+                    if (value of every static text of w as text) contains "audio device" then click button "No" of w
+                  end try
+                end repeat
               end tell' >> dialogs.txt 2>&1 || true
               sleep 1
             done ) &
@@ -75,6 +77,23 @@ jobs:
             name=$(cat "$TMPDIR/kit_phase_$n")
             sleep 4
             screencapture -x "shots/$n-$name.png" || echo "screencapture failed"
+            # an error or a "please install" message is a step a student would have to do by hand: record it, close it
+            osascript -e 'tell application "System Events" to tell process "REAPER"
+                set found to ""
+                repeat with w in every window
+                  try
+                    set t to (value of every static text of w as text)
+                    if t contains "install" or t contains "Error" or t contains "required" or t contains "missing" then
+                      set found to found & t & linefeed
+                      try
+                        click button "OK" of w
+                      end try
+                    end if
+                  end try
+                end repeat
+                return found
+              end tell' > "shots/$n-problems.txt" 2>&1 || true
+            [ -s "shots/$n-problems.txt" ] && { echo "PROBLEM in phase $n:"; cat "shots/$n-problems.txt"; }
             osascript -e 'tell application "System Events" to get name of every window of process "REAPER"' > "shots/$n-windows.txt" 2>&1 || true
             osascript -e 'tell application "System Events" to tell process "REAPER" to get value of every static text of every window' > "shots/$n-texts.txt" 2>&1 || true
             touch "$TMPDIR/kit_ack_$n"

@@ -16,6 +16,7 @@ PACKAGES = [
     ("https://raw.githubusercontent.com/ReaTeam/Extensions/master/index.xml", "js_ReaScriptAPI.ext", True),
     ("https://raw.githubusercontent.com/ReaTeam/Extensions/master/index.xml", "reaper_imgui.ext", False),
     ("https://raw.githubusercontent.com/GoranKovac/ReaScripts/master/index.xml", "Sexan_Pie3000.lua", False),
+    ("https://nvk.tools/index.xml", "nvk_SHARED", False),           # nvk_SEARCH stops without it
     ("https://nvk.tools/index.xml", "nvk_SEARCH.lua", False),
 ]
 PLATFORMS = ["win64", "darwin-arm64", "darwin64"]
@@ -47,7 +48,8 @@ def files_of(index_url, name, skip_data, cache):
     index_name = root.get("name")
     for cat in root.iter("category"):
         for pkg in cat.findall("reapack"):
-            if pkg.get("name") != name:
+            pname = pkg.get("name", "")
+            if pname.lower() != name.lower() and pname.rsplit(".", 1)[0].lower() != name.lower():
                 continue
             versions = pkg.findall("version")
             version = versions[-1]
