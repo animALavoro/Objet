@@ -39,8 +39,8 @@ cmd("_XENAKIOS_SELFIRSTITEMSOFTRACKS", "SWS Xenakios (in Tab)")
 local phases = {
   { "start", function() end },
   { "pie3000", function() if pie ~= 0 then reaper.Main_OnCommand(pie, 0) end end },
-  { "nvk-search", function() if nvk ~= 0 then reaper.Main_OnCommand(nvk, 0) end end },
   { "polywav-manager", function() if pw ~= 0 then reaper.Main_OnCommand(pw, 0) end end },
+  { "nvk-search", function() if nvk ~= 0 then reaper.Main_OnCommand(nvk, 0) end end },   -- last: its licence windows
   { "later", function() end },
 }
 
