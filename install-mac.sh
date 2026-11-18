@@ -91,17 +91,30 @@ ext() {
     && mv "$rp.part" "$rp" || { rm -f "$rp.part"; echo "  download failed: ReaPack"; exit 1; }
   curl -fsSL --retry 3 -o "$TMP/packages.txt" "$BASE/reaper-packages.txt" || { echo "  download failed: $BASE/reaper-packages.txt"; exit 1; }
   echo "- SWS, js_ReaScriptAPI, ReaImGui, pie menu (Pie3000), nvk_SEARCH"
-  local p path url n=0
-  while IFS=$'\t' read -r p path url; do
+  # each line: platform, path, one or more URLs (a mirror first); a file that no URL gives is reported at the end
+  local p path url alt n=0 failed=""
+  while IFS=$'\t' read -r p path url alt; do
     [ -n "$url" ] || continue
     [ "$p" = "*" ] || [ "$p" = "$plat" ] || continue
     mkdir -p "$(dirname "$RESOURCE/$path")"
-    curl -fsSL --retry 3 -o "$RESOURCE/$path.part" "$url" && mv "$RESOURCE/$path.part" "$RESOURCE/$path" \
-      || { rm -f "$RESOURCE/$path.part"; echo "  download failed: $url"; exit 1; }
-    xattr -d com.apple.quarantine "$RESOURCE/$path" 2>/dev/null || true
-    n=$((n + 1))
+    local ok=""
+    for u in "$url" $alt; do
+      if curl -fsSL --retry 2 --connect-timeout 20 -o "$RESOURCE/$path.part" "$u"; then ok=1; break; fi
+    done
+    if [ -n "$ok" ]; then
+      mv "$RESOURCE/$path.part" "$RESOURCE/$path"
+      xattr -d com.apple.quarantine "$RESOURCE/$path" 2>/dev/null || true
+      n=$((n + 1))
+    else
+      rm -f "$RESOURCE/$path.part"
+      failed="$failed\n    $path ($url)"
+    fi
   done < "$TMP/packages.txt"
   echo "  $n files installed in $RESOURCE"
+  if [ -n "$failed" ]; then
+    EXT_FAILED=1
+    printf "  NOT downloaded (network?):%b\n" "$failed"
+  fi
 }
 
 echo "Objet suite: installing from $BASE"
@@ -124,4 +137,8 @@ case "$WHAT" in
 esac
 
 echo
+if [ -n "${EXT_FAILED:-}" ]; then
+  echo "Some REAPER extensions or scripts could not be downloaded (listed above): on another network, run"
+  echo "  curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash -s -- ext"
+fi
 echo "Done. Open REAPER: REAPER > Settings > Plug-ins > VST > Clear cache/re-scan."

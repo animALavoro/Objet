@@ -1,8 +1,9 @@
 name: Refresh REAPER packages list
 
-# By hand: rebuilds reaper-packages.txt (tools/reaper_packages.py) and replaces it, the installers and the course
-# configuration (kit/) in an existing release,
-# without rebuilding the plugins.
+# By hand: rebuilds reaper-packages.txt (tools/reaper_packages.py) and puts it, the installers and the course
+# configuration (kit/) in a release, without rebuilding the plugins.
+#  - new_tag empty: replaces them in the release "tag";
+#  - new_tag set: makes a new pre-release with the plugins and apps of "tag" and the new files (to try it first).
 
 on:
   workflow_dispatch:
@@ -10,6 +11,9 @@ on:
       tag:
         description: "Release tag, e.g. suite-2026.11.17"
         required: true
+      new_tag:
+        description: "Optional: new pre-release tag, e.g. suite-2026.11.18 (copies the other files of 'tag')"
+        default: ""
 
 permissions:
   contents: write
@@ -22,6 +26,15 @@ jobs:
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ inputs.tag }}
+          NEW_TAG: ${{ inputs.new_tag }}
         run: |
           python3 tools/reaper_packages.py reaper-packages.txt
-          gh release upload "$TAG" reaper-packages.txt install-mac.sh install-windows.ps1 kit/* --clobber --repo "$GITHUB_REPOSITORY"
+          if [ -z "$NEW_TAG" ]; then
+            gh release upload "$TAG" reaper-packages.txt install-mac.sh install-windows.ps1 kit/* --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            mkdir dist
+            gh release download "$TAG" --dir dist --repo "$GITHUB_REPOSITORY"
+            cp reaper-packages.txt install-mac.sh install-windows.ps1 kit/* dist/
+            ls -l dist
+            gh release create "$NEW_TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "$NEW_TAG" --notes-file NOTES.md --prerelease --latest=false
+          fi

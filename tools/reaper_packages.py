@@ -3,9 +3,12 @@
 
 Run by the Release workflow. The installers read the list and download each file from its original source
 (nothing is redistributed here), into REAPER's resource folder, for the student's platform.
-Line format:  platform <TAB> path in REAPER's resource folder <TAB> URL
+Line format:  platform <TAB> path in REAPER's resource folder <TAB> URL [<TAB> second URL]
 platform: win64, darwin-arm64, darwin64, or * (all).
+Files published on codeberg.org are taken from their GitHub mirror when it has them (some school networks do not reach
+codeberg.org), with codeberg as the second URL.
 """
+import re
 import sys
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -40,6 +43,35 @@ def norm(path):
     return "/".join(out)
 
 
+def reachable(url):
+    try:
+        req = urllib.request.Request(url, method="HEAD", headers={"User-Agent": "objet-release"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return r.status == 200
+    except Exception:
+        return False
+
+
+def github_mirror(url):
+    """codeberg.org/<owner>/<repo>/releases/download/... or /raw/<ref>/... -> the same file on GitHub, or None."""
+    m = re.match(r"https://codeberg\.org/([^/]+)/([^/]+)/releases/download/(.+)$", url)
+    if m:
+        return f"https://github.com/{m[1]}/{m[2]}/releases/download/{m[3]}"
+    m = re.match(r"https://codeberg\.org/([^/]+)/([^/]+)/raw/(.+)$", url)
+    if m:
+        return f"https://raw.githubusercontent.com/{m[1]}/{m[2]}/{m[3]}"
+    return None
+
+
+def urls_for(url):
+    mirror = github_mirror(url)
+    if mirror and reachable(mirror):
+        return [mirror, url]
+    if mirror:
+        print(f"no GitHub mirror for {url}", file=sys.stderr)
+    return [url]
+
+
 def files_of(index_url, name, skip_data, cache):
     if index_url not in cache:
         with urllib.request.urlopen(index_url, timeout=60) as r:
@@ -72,8 +104,9 @@ def files_of(index_url, name, skip_data, cache):
                     path = norm(f"{TYPE_DIR[stype]}/{file}")
                 else:
                     raise SystemExit(f"{name}: unknown type {stype}")
+                urls = urls_for(url)
                 for p in (["*"] if plats == PLATFORMS else plats):
-                    yield p, path, url
+                    yield (p, path, *urls)
             return
     raise SystemExit(f"package {name} not found in {index_url}")
 
