@@ -6,6 +6,7 @@
 # the OTIO to RPP app to your own programs folder with a Start menu shortcut.
 param([string]$What = "all", [string]$Version = "")
 $ErrorActionPreference = "Stop"
+$script:ExtFailed = $false
 $ProgressPreference = "SilentlyContinue"            # Invoke-WebRequest is much faster without the progress bar
 
 $Repo = "animALavoro/Objet"
@@ -80,18 +81,38 @@ function Install-Ext {
     $list = Join-Path $tmp "packages.txt"
     Invoke-WebRequest -UseBasicParsing -Uri "$Base/reaper-packages.txt" -OutFile $list
     Write-Host "- SWS, js_ReaScriptAPI, ReaImGui, pie menu (Pie3000), nvk_SEARCH"
+    # each line: platform, path, one or more URLs (a mirror first); a file that no URL gives is reported at the end
     $n = 0
+    $failed = @()
     foreach ($line in Get-Content $list) {
         $f = $line -split "`t"
         if ($f.Count -lt 3 -or ($f[0] -ne "*" -and $f[0] -ne "win64")) { continue }
         $dest = Join-Path $res ($f[1] -replace "/", "\")
         New-Item -ItemType Directory -Force (Split-Path $dest) | Out-Null
-        Invoke-WebRequest -UseBasicParsing -Uri $f[2] -OutFile "$dest.part"
-        Move-Item -Force "$dest.part" $dest
-        Unblock-File $dest
-        $n++
+        $ok = $false
+        foreach ($u in $f[2..($f.Count - 1)]) {
+            if (-not $u) { continue }
+            try {
+                Invoke-WebRequest -UseBasicParsing -TimeoutSec 60 -Uri $u -OutFile "$dest.part"
+                $ok = $true
+                break
+            } catch { }
+        }
+        if ($ok) {
+            Move-Item -Force "$dest.part" $dest
+            Unblock-File $dest
+            $n++
+        } else {
+            Remove-Item -Force -ErrorAction SilentlyContinue "$dest.part"
+            $failed += "    $($f[1]) ($($f[2]))"
+        }
     }
     Write-Host "  $n files installed in $res"
+    if ($failed.Count -gt 0) {
+        $script:ExtFailed = $true
+        Write-Host "  NOT downloaded (network?):"
+        $failed | ForEach-Object { Write-Host $_ }
+    }
 }
 
 Write-Host "Objet suite: installing from $Base"
@@ -129,4 +150,8 @@ if ($What -in @("all", "ext"))  { Install-Ext }
 
 Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $tmp
 Write-Host ""
+if ($script:ExtFailed) {
+    Write-Host "Some REAPER extensions or scripts could not be downloaded (listed above): on another network, run"
+    Write-Host "  & ([scriptblock]::Create((irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1))) ext"
+}
 Write-Host "Done. Open REAPER: Options > Preferences > Plug-ins > VST > Clear cache/re-scan."
