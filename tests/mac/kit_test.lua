@@ -8,6 +8,21 @@ local function log(s) f:write(os.date("%H:%M:%S ") .. tostring(s) .. "\n") f:flu
 local function exists(p) local h = io.open(p, "r") if h then h:close() return true end return false end
 local res = reaper.GetResourcePath()
 log("REAPER " .. reaper.GetAppVersion() .. ", resource " .. res)
+for _, k in ipairs({ "env_reduce", "splitautoxfade", "itemicons", "itemvolmode", "labelitems2", "video_decprio" }) do
+  local ok, v = reaper.get_config_var_string(k)
+  log("config " .. k .. " = " .. tostring(ok and v or "?"))
+end
+do
+  local h = io.open(res .. "/REAPER.ini", "r")
+  if h then
+    local sec
+    for line in h:lines() do
+      local s = line:match("^%[(.+)%]") if s then sec = s end
+      if line:find("^fx_mode") or line:find("^video_decprio") then log("ini [" .. tostring(sec) .. "] " .. line) end
+    end
+    h:close()
+  end
+end
 
 local function api(name) local ok = reaper.APIExists(name) log((ok and "ok   " or "FAIL ") .. "API " .. name) return ok end
 api("CF_GetSWSVersion")              -- SWS
