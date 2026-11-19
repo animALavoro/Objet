@@ -1,0 +1,31 @@
+17:32:35 REAPER 7.84/macOS-arm64, resource /Users/runner/Library/Application Support/REAPER
+17:32:35 config env_reduce = 1039
+17:32:35 config splitautoxfade = 262177
+17:32:35 config itemicons = 4415
+17:32:35 config itemvolmode = 1
+17:32:35 config labelitems2 = 15
+17:32:35 config video_decprio = vlc avfoundation ffmpeg qt:mov,qt,m4v,mp4
+17:32:35 ini [reaper] video_decprio=vlc avfoundation ffmpeg qt:mov,qt,m4v,mp4
+17:32:35 ini [reaper_video] fx_mode=2
+17:32:35 ok   API CF_GetSWSVersion
+17:32:35 ok   API JS_ReaScriptAPI_Version
+17:32:35 ok   API ImGui_GetBuiltinPath
+17:32:35 ok   API ReaPack_BrowsePackages
+17:32:35 SWS 2.14.0.7
+17:32:35 js 1.31
+17:32:35 ImGui 1.92.1
+17:32:35 ok   Scripts/ReaTeam Extensions/API/imgui.lua
+17:32:35 ok   Scripts/Sexan_Scripts/Pie3000/Sexan_Pie3000.lua
+17:32:35 ok   Scripts/nvk-ReaScripts/SEARCH/nvk_SEARCH.lua
+17:32:35 ok   Scripts/nvk-ReaScripts/SHARED/nvk_SHARED.lua
+17:32:35 ok   Scripts/Polywav Manager/Polywav Manager.lua
+17:32:35 ok   Scripts/Sexan_Scripts/Pie3000/pie_file.txt
+17:32:35 ok   action Pie3000 (key C) (_RS2039f6a463e791b26b83664161168a2f34203c16) = 55826
+17:32:35 ok   action nvk_SEARCH (key *) (_RS42ab70fd2ac65e9a003787709bb85f18c36dee52) = 55825
+17:32:35 ok   action Polywav Manager (from the course configuration) (_RSe58199659d1dd72df9f3454fa92592fb6411358d) = 55827
+17:32:35 ok   action SWS take envelope (key T) (_S&M_TAKEENVSHOW1) = 55200
+17:32:35 ok   action SWS Xenakios (in Tab) (_XENAKIOS_SELFIRSTITEMSOFTRACKS) = 53249
+17:32:41 phase 1 start
+17:32:52 phase 2 pie3000
+17:33:04 phase 3 polywav-manager
+17:33:15 phase 4 nvk-search

@@ -1,0 +1,11 @@
+/Users/runner/Library/Application Support/REAPER/ReaPack:
+cache
+registry.db
+
+/Users/runner/Library/Application Support/REAPER/ReaPack/cache:
+
+/Users/runner/Library/Application Support/REAPER/UserPlugins:
+reaper_imgui-arm64.dylib
+reaper_js_ReaScriptAPI64ARM.dylib
+reaper_reapack-arm64.dylib
+reaper_sws-arm64.dylib

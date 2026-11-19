@@ -1,0 +1,1 @@
+image 1 of window 1 of application process REAPER, static text nvk_SEARCH of window 1 of application process REAPER, static text No license entered. Start 14-day trial? of window 1 of application process REAPER, button No of window 1 of application process REAPER, button Yes of window 1 of application process REAPER

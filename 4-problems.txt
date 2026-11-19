@@ -1,0 +1,3 @@
+nvk licence window
+
+button Cancel of window nvk_SEARCH of application process REAPER
