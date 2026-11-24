@@ -12,6 +12,9 @@ name: Release
 # The suite: the three VST3 plugins, the OTIO -> RPP app (Windows .exe, macOS .app for Apple silicon) and the
 # Polywav Manager script for REAPER (Lua, same zip for both systems).
 # This repository is public: GitHub Actions minutes are free here, macOS included.
+# With publish off it is also the plugins' CI (the private repositories have no Actions minutes): what = one plugin
+# (pa / scene / monitor / loudness) and its branch builds and tests only that plugin, on Windows and macOS, with the
+# zips in the run's artifacts; what = all with loudness_ref set builds and tests every plugin.
 
 on:
   workflow_dispatch:
@@ -34,7 +37,7 @@ on:
         description: "Objet-a-Monitor: branch, tag or commit"
         default: main
       loudness_ref:
-        description: "Objet-a-Loudness: branch, tag or commit; empty = the post kit without it (what = loudness: main)"
+        description: "Objet-a-Loudness: branch, tag or commit; empty = all and post without it (what = loudness: main)"
         default: ""
       otio_ref:
         description: "OTIO-to-RPP: branch, tag or commit"
@@ -74,7 +77,8 @@ jobs:
             {"id":"loudness","repo":"animALavoro/Objet-a-Loudness","name":"Objet-a-Loudness","target":"ObjetALoudness_VST3","tests":"ola_tests","opts":"-DOLA_BUILD_TESTS=ON","bundle":"build/ObjetALoudness_artefacts/Release/VST3/Objet a Loudness.vst3","extra":"README.md README.it.md"}
           ]'
           case "$WHAT" in
-            all)  sel=$(echo "$all" | jq -c '[.[] | select(.id != "loudness")]') ;;
+            # Objet a Loudness only with loudness_ref set (e.g. a check build of every plugin: all, publish off)
+            all)  if [ -n "$LOUDNESS_REF" ]; then sel="$all"; else sel=$(echo "$all" | jq -c '[.[] | select(.id != "loudness")]'); fi ;;
             post) if [ -n "$LOUDNESS_REF" ]; then sel=$(echo "$all" | jq -c '[.[] | select(.id == "loudness")]'); else sel='[]'; fi ;;
             *)    sel=$(echo "$all" | jq -c --arg w "$WHAT" '[.[] | select(.id == $w)]') ;;
           esac
