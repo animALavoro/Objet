@@ -4,7 +4,11 @@ name: Release
 # contents read-only), for Windows and macOS (universal arm64 + x86_64, ad-hoc signature), and publishes:
 #  - what = all: one release of the suite, tag suite-<version>; marked latest (what the install line uses) only with
 #    "latest" ticked: otherwise it is tried first with "| bash -s -- all <version>", then Edit release > Set as latest;
-#  - what = pa / scene / monitor / otio / polywav: a release of that one only, tag <what>-<version>, not marked latest.
+#  - what = post: the post-production course kit, tag post-<version>: OTIO to RPP, Polywav Manager, Objet a Loudness
+#    (only with loudness_ref set), the installers set to the post kit (tools/prepare_kit.sh) and kit/post/*. Always a
+#    pre-release, so that the suite stays the latest; with "latest" ticked its files also go to the release "post"
+#    (tools/promote_post.sh), where the course's install line takes them;
+#  - what = pa / scene / monitor / loudness / otio / polywav: a release of that one only, tag <what>-<version>, not latest.
 # The suite: the three VST3 plugins, the OTIO -> RPP app (Windows .exe, macOS .app for Apple silicon) and the
 # Polywav Manager script for REAPER (Lua, same zip for both systems).
 # This repository is public: GitHub Actions minutes are free here, macOS included.
@@ -13,12 +17,12 @@ on:
   workflow_dispatch:
     inputs:
       what:
-        description: "all = the suite; or one plugin only"
+        description: "all = the suite; post = the post-production kit; or one part only"
         type: choice
-        options: [all, pa, scene, monitor, otio, polywav]
+        options: [all, post, pa, scene, monitor, loudness, otio, polywav]
         default: all
       version:
-        description: "Version, e.g. 2026.11.10 (suite) or v0.2.0 (one plugin); any text when not publishing"
+        description: "Version, e.g. 2026.11.10 (suite, post) or v0.2.0 (one plugin); any text when not publishing"
         required: true
       pa_ref:
         description: "LB-Spanner: branch, tag or commit"
@@ -29,6 +33,9 @@ on:
       monitor_ref:
         description: "Objet-a-Monitor: branch, tag or commit"
         default: main
+      loudness_ref:
+        description: "Objet-a-Loudness: branch, tag or commit; empty = the post kit without it (what = loudness: main)"
+        default: ""
       otio_ref:
         description: "OTIO-to-RPP: branch, tag or commit"
         default: main
@@ -40,7 +47,7 @@ on:
         type: boolean
         default: true
       latest:
-        description: "Mark as latest (students get it). Off: published as a pre-release, reachable only with the version, to try it first"
+        description: "Mark as latest (students get it; post: copied to the release 'post'). Off: a pre-release, reachable only with the version, to try it first"
         type: boolean
         default: false
 
@@ -58,13 +65,19 @@ jobs:
         env:
           WHAT: ${{ inputs.what }}
           VERSION: ${{ inputs.version }}
+          LOUDNESS_REF: ${{ inputs.loudness_ref }}
         run: |
           all='[
             {"id":"pa","repo":"animALavoro/LB-Spanner","name":"Objet-Pa","target":"LBSpanner_VST3","tests":"lbs_tests","opts":"-DLBS_BUILD_TESTS=ON","bundle":"build/LBSpanner_artefacts/Release/VST3/LB Spanner.vst3","extra":"README.md README.it.md CHANGELOG.md"},
             {"id":"scene","repo":"animALavoro/Objet-a-Scene","name":"Objet-a-Scene","target":"ObjetAScene_VST3","tests":"oas_tests","opts":"-DOAS_BUILD_TESTS=ON","bundle":"build/ObjetAScene_artefacts/Release/VST3/Objet a Scene.vst3","extra":"README.md README.it.md"},
-            {"id":"monitor","repo":"animALavoro/Objet-a-Monitor","name":"Objet-a-Monitor","target":"ObjetMonitor_VST3","tests":"lbm_tests","opts":"-DLBM_BUILD_TESTS=ON","bundle":"build/ObjetMonitor_artefacts/Release/VST3/Objet a Monitor.vst3","extra":"README.md README.it.md THIRD_PARTY_LICENSES"}
+            {"id":"monitor","repo":"animALavoro/Objet-a-Monitor","name":"Objet-a-Monitor","target":"ObjetMonitor_VST3","tests":"lbm_tests","opts":"-DLBM_BUILD_TESTS=ON","bundle":"build/ObjetMonitor_artefacts/Release/VST3/Objet a Monitor.vst3","extra":"README.md README.it.md THIRD_PARTY_LICENSES"},
+            {"id":"loudness","repo":"animALavoro/Objet-a-Loudness","name":"Objet-a-Loudness","target":"ObjetALoudness_VST3","tests":"ola_tests","opts":"-DOLA_BUILD_TESTS=ON","bundle":"build/ObjetALoudness_artefacts/Release/VST3/Objet a Loudness.vst3","extra":"README.md README.it.md"}
           ]'
-          if [ "$WHAT" = all ]; then sel="$all"; else sel=$(echo "$all" | jq -c --arg w "$WHAT" '[.[] | select(.id == $w)]'); fi
+          case "$WHAT" in
+            all)  sel=$(echo "$all" | jq -c '[.[] | select(.id != "loudness")]') ;;
+            post) if [ -n "$LOUDNESS_REF" ]; then sel=$(echo "$all" | jq -c '[.[] | select(.id == "loudness")]'); else sel='[]'; fi ;;
+            *)    sel=$(echo "$all" | jq -c --arg w "$WHAT" '[.[] | select(.id == $w)]') ;;
+          esac
           echo "matrix=$(echo "$sel" | jq -c .)" >> "$GITHUB_OUTPUT"
           if [ "$WHAT" = all ]; then echo "tag=suite-$VERSION" >> "$GITHUB_OUTPUT"; else echo "tag=$WHAT-$VERSION" >> "$GITHUB_OUTPUT"; fi
 
@@ -81,7 +94,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ${{ matrix.plugin.repo }}
-          ref: ${{ matrix.plugin.id == 'pa' && inputs.pa_ref || matrix.plugin.id == 'scene' && inputs.scene_ref || inputs.monitor_ref }}
+          ref: ${{ matrix.plugin.id == 'pa' && inputs.pa_ref || matrix.plugin.id == 'scene' && inputs.scene_ref || matrix.plugin.id == 'loudness' && (inputs.loudness_ref || 'main') || inputs.monitor_ref }}
           token: ${{ secrets.SOURCE_TOKEN }}
           persist-credentials: false
 
@@ -146,7 +159,7 @@ jobs:
   # the OTIO -> RPP app (Python + Tkinter, frozen with PyInstaller): Windows one-file .exe, macOS .app (arm64, ad-hoc signed)
   otio:
     needs: plan
-    if: inputs.what == 'all' || inputs.what == 'otio'
+    if: inputs.what == 'all' || inputs.what == 'post' || inputs.what == 'otio'
     strategy:
       fail-fast: true
       matrix:
@@ -195,7 +208,7 @@ jobs:
   # the Polywav Manager script (Lua): its tests, then one zip with the folder "Polywav Manager" for REAPER's Scripts
   polywav:
     needs: plan
-    if: inputs.what == 'all' || inputs.what == 'polywav'
+    if: inputs.what == 'all' || inputs.what == 'post' || inputs.what == 'polywav'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -241,12 +254,20 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.plan.outputs.tag }}
           WHAT: ${{ inputs.what }}
+          VERSION: ${{ inputs.version }}
           LATEST: ${{ inputs.latest }}
         run: |
-          cp install-mac.sh install-windows.ps1 dist/
-          cp kit/* dist/                 # the course's REAPER configuration
+          # the installers and the course's REAPER configuration (post: the installers set to the post kit)
+          if [ "$WHAT" = post ]; then kit=post; else kit=suite; fi
+          tools/prepare_kit.sh "$kit" dist
           python3 tools/reaper_packages.py dist/reaper-packages.txt   # SWS, js_ReaScriptAPI, ReaImGui, pie menu, nvk_SEARCH: where to get them
           ls -l dist
+          if [ "$WHAT" = post ]; then
+            # always a pre-release: the suite stays GitHub's latest (the immersive course's install line)
+            gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "Post produzione $VERSION" --notes-file NOTES-post.md --prerelease --latest=false
+            if [ "$LATEST" = true ]; then tools/promote_post.sh "$TAG" dist; fi
+            exit 0
+          fi
           flags=()
           # GitHub's latest is the newest release that is not a pre-release (make_latest=false is not enough):
           # a release to try first is published as a pre-release, then Edit release > untick pre-release + Set as latest

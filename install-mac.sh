@@ -5,11 +5,19 @@
 #   ... | bash -s -- pa            only Objet Pa (also: scene, monitor, otio, polywav = Polywav Manager script,
 #                                  ext = ReaPack, SWS, js_ReaScriptAPI, ReaImGui, pie menu, nvk_SEARCH)
 #   ... | bash -s -- pa v0.2.0     a release of one plugin (tag pa-v0.2.0)
+#   ... | bash -s -- post          the post-production course kit: OTIO to RPP, Polywav Manager, Objet a Loudness
+#                                  (when the release has it) and ext; also loudness = Objet a Loudness only
+# The post-production course's own line (its release, tag "post", where this file defaults to the post kit):
+#   curl -fsSL https://github.com/animALavoro/Objet/releases/download/post/install-mac.sh | bash
 # Downloads with curl (no quarantine flag), installs in the user's own folders: no administrator password.
 set -euo pipefail
 
 REPO="animALavoro/Objet"
-WHAT="${1:-all}"
+# what this file installs without arguments, and from which release (empty = latest): the Release workflow changes
+# these two lines in the copy it puts in the post-production course's release
+DEFAULT_PART="all"
+DEFAULT_TAG=""
+WHAT="${1:-$DEFAULT_PART}"
 VERSION="${2:-}"
 VST3="$HOME/Library/Audio/Plug-Ins/VST3"
 APPS="$HOME/Applications"
@@ -19,16 +27,21 @@ SCRIPTS="$RESOURCE/Scripts"
 [ "$(uname -s)" = "Darwin" ] || { echo "This installer is for macOS."; exit 1; }
 
 case "$WHAT" in
-  all|plugins|pa|scene|monitor|otio|polywav|ext) ;;
-  *) echo "Unknown part '$WHAT': use all, plugins, pa, scene, monitor, otio, polywav or ext."; exit 1 ;;
+  all|plugins|pa|scene|monitor|otio|polywav|ext|post|loudness) ;;
+  *) echo "Unknown part '$WHAT': use all, plugins, pa, scene, monitor, otio, polywav, ext, post or loudness."; exit 1 ;;
 esac
 
 if [ -n "$VERSION" ]; then
   if [ "$WHAT" = all ] || [ "$WHAT" = plugins ]; then TAG="suite-$VERSION"; else TAG="$WHAT-$VERSION"; fi
   BASE="https://github.com/$REPO/releases/download/$TAG"
+elif [ -n "$DEFAULT_TAG" ]; then
+  BASE="https://github.com/$REPO/releases/download/$DEFAULT_TAG"
 else
   BASE="https://github.com/$REPO/releases/latest/download"
 fi
+# this same installer's line, for the messages below
+if [ -n "$DEFAULT_TAG" ]; then LINE="curl -fsSL https://github.com/$REPO/releases/download/$DEFAULT_TAG/install-mac.sh | bash"
+else LINE="curl -fsSL https://github.com/$REPO/releases/latest/download/install-mac.sh | bash"; fi
 
 if pgrep -xq REAPER; then
   echo "REAPER is open: close it (REAPER > Quit REAPER) and run this line again."
@@ -51,6 +64,11 @@ plugin() {
   ditto "$TMP/x/$bundle" "$VST3/$bundle"
   xattr -dr com.apple.quarantine "$VST3/$bundle" 2>/dev/null || true
   echo "  installed in $VST3/$bundle"
+}
+
+# a plugin that a release may not have yet (Objet a Loudness in the post-production kit): skipped when it is not there
+optional_plugin() {
+  if curl -fsIL --retry 2 -o /dev/null "$BASE/$1"; then plugin "$@"; else echo "- $3: not in this release yet"; fi
 }
 
 otio() {
@@ -117,7 +135,7 @@ ext() {
   fi
 }
 
-echo "Objet suite: installing from $BASE"
+if [ "$WHAT" = post ]; then echo "Objet, post-production kit: installing from $BASE"; else echo "Objet suite: installing from $BASE"; fi
 case "$WHAT" in
   all)     plugin Objet-Pa-macOS.zip "LB Spanner.vst3" "Objet Pa"
            plugin Objet-a-Scene-macOS.zip "Objet a Scene.vst3" "Objet a Scene"
@@ -134,11 +152,16 @@ case "$WHAT" in
   otio)    otio ;;
   polywav) polywav ;;
   ext)     ext ;;
+  post)    otio
+           polywav
+           optional_plugin Objet-a-Loudness-macOS.zip "Objet a Loudness.vst3" "Objet a Loudness"
+           ext ;;
+  loudness) plugin Objet-a-Loudness-macOS.zip "Objet a Loudness.vst3" "Objet a Loudness" ;;
 esac
 
 echo
 if [ -n "${EXT_FAILED:-}" ]; then
   echo "Some REAPER extensions or scripts could not be downloaded (listed above): on another network, run"
-  echo "  curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash -s -- ext"
+  echo "  $LINE -s -- ext"
 fi
 echo "Done. Open REAPER: REAPER > Settings > Plug-ins > VST > Clear cache/re-scan."

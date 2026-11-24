@@ -3,13 +3,18 @@ name: Kit test (Mac)
 # By hand: the student kit on a CI Mac, as a student gets it. REAPER (evaluation) from Homebrew, install-mac.sh of a
 # release, the course configuration (unzipped in REAPER's resource folder, as Import configuration does), then REAPER
 # runs tests/mac/kit_test.lua: extensions loaded, actions registered, each script run, a screenshot each phase
-# (branch kit-shots).
+# (branch kit-shots). kit = post: the post-production course's kit (release "post", or post-<version>).
 
 on:
   workflow_dispatch:
     inputs:
+      kit:
+        description: "suite = the immersive course (latest release); post = the post-production course (release post)"
+        type: choice
+        options: [suite, post]
+        default: suite
       version:
-        description: "Suite version (tag suite-<version>); empty = latest"
+        description: "Version (tag suite-<version> or post-<version>); empty = the one students get"
         default: ""
 
 permissions:
@@ -30,14 +35,26 @@ jobs:
 
       - name: Install the kit as a student
         env:
+          KIT: ${{ inputs.kit }}
           VERSION: ${{ inputs.version }}
         run: |
+          R=https://github.com/animALavoro/Objet/releases
+          if [ "$KIT" = post ]; then part=post; cfg=Post_Produzione.ReaperConfigZip; fixed="$R/download/post"
+          else part=all; cfg=Cinema_Immersivo.ReaperConfigZip; fixed="$R/latest/download"; fi
           if [ -n "$VERSION" ]; then
-            curl -fsSL "https://github.com/animALavoro/Objet/releases/download/suite-$VERSION/install-mac.sh" | bash -s -- all "$VERSION"
-            curl -fsSL -o "$TMPDIR/cfg.zip" "https://github.com/animALavoro/Objet/releases/download/suite-$VERSION/Cinema_Immersivo.ReaperConfigZip"
+            base="$R/download/$( [ "$KIT" = post ] && echo post || echo suite )-$VERSION"
+            curl -fsSL "$base/install-mac.sh" | bash -s -- "$part" "$VERSION"
           else
-            curl -fsSL https://github.com/animALavoro/Objet/releases/latest/download/install-mac.sh | bash
-            curl -fsSL -o "$TMPDIR/cfg.zip" https://github.com/animALavoro/Objet/releases/latest/download/Cinema_Immersivo.ReaperConfigZip
+            base="$fixed"
+            curl -fsSL "$base/install-mac.sh" | bash      # the students' line, without arguments
+          fi
+          curl -fsSL -o "$TMPDIR/cfg.zip" "$base/$cfg"
+          if [ "$KIT" = post ]; then
+            # the post kit has none of the immersive course's plugins
+            for b in "LB Spanner.vst3" "Objet a Scene.vst3" "Objet a Monitor.vst3"; do
+              [ ! -e "$HOME/Library/Audio/Plug-Ins/VST3/$b" ] || { echo "::error::$b installed by the post kit"; exit 1; }
+            done
+            ls "$HOME/Library/Audio/Plug-Ins/VST3" || true
           fi
           RES="$HOME/Library/Application Support/REAPER"
           mkdir -p "$RES" && cd "$RES" && unzip -o -q "$TMPDIR/cfg.zip" && rm -f reaper-configzip-info
@@ -119,6 +136,6 @@ jobs:
           rm -rf /tmp/kit-shots && mkdir /tmp/kit-shots && cp -R shots/. /tmp/kit-shots/ && cd /tmp/kit-shots
           git init -q -b kit-shots
           git config user.name "github-actions" && git config user.email "github-actions@users.noreply.github.com"
-          echo "run ${{ github.run_id }}, version '${{ inputs.version }}'" > RUN.txt
+          echo "run ${{ github.run_id }}, kit '${{ inputs.kit }}', version '${{ inputs.version }}'" > RUN.txt
           git add -A && git commit -q -m "kit screenshots, run ${{ github.run_id }}"
           git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" kit-shots
