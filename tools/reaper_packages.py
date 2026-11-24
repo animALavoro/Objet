@@ -95,7 +95,8 @@ def files_of(index_url, name, skip_data, cache):
                 if plats is None:            # linux, 32-bit
                     continue
                 url = (src.text or "").strip()
-                file = src.get("file") or url.rsplit("/", 1)[-1]
+                # without "file" ReaPack names the file after the package (a URL can end in a hash, as nvk_SEARCH does)
+                file = src.get("file") or pkg.get("name")
                 if stype == "extension":
                     path = "UserPlugins/" + norm(file)
                 elif stype == "script" or stype == "effect":
@@ -115,6 +116,10 @@ def main():
     cache, lines = {}, []
     for index_url, name, skip in PACKAGES:
         lines += ["\t".join(f) for f in files_of(index_url, name, skip, cache)]
+    # a file without an extension is a name taken from a URL by mistake (the script would be missing)
+    bad = [l for l in lines if "." not in l.split("\t")[1].rsplit("/", 1)[-1]]
+    if bad:
+        raise SystemExit("files without an extension (wrong name?):\n" + "\n".join(bad))
     out = sys.argv[1] if len(sys.argv) > 1 else "reaper-packages.txt"
     with open(out, "w", newline="\n") as f:
         f.write("\n".join(lines) + "\n")
