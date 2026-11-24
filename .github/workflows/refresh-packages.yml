@@ -1,19 +1,26 @@
 name: Refresh REAPER packages list
 
 # By hand: rebuilds reaper-packages.txt (tools/reaper_packages.py) and puts it, the installers and the course
-# configuration (kit/) in a release, without rebuilding the plugins.
+# configuration in a release, without rebuilding the plugins. A tag that starts with "post" gets the post-production
+# kit's installers and configuration (kit/post), any other the suite's (tools/prepare_kit.sh).
 #  - new_tag empty: replaces them in the release "tag";
 #  - new_tag set: makes a new pre-release with the plugins and apps of "tag" and the new files (to try it first).
+# A post-production pre-release tried and good: "promote_post" on copies its files to the release "post", which the
+# course's install line uses (tools/promote_post.sh); with new_tag set, the new pre-release is copied.
 
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag, e.g. suite-2026.11.17"
+        description: "Release tag, e.g. suite-2026.11.17 or post-2026.12.01"
         required: true
       new_tag:
         description: "Optional: new pre-release tag, e.g. suite-2026.11.18 (copies the other files of 'tag')"
         default: ""
+      promote_post:
+        description: "Post kit only: then copy the release to 'post' (the one the course's students get)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -27,14 +34,25 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ inputs.tag }}
           NEW_TAG: ${{ inputs.new_tag }}
+          PROMOTE: ${{ inputs.promote_post }}
         run: |
-          python3 tools/reaper_packages.py reaper-packages.txt
+          case "${NEW_TAG:-$TAG}" in
+            post*) kit=post; notes=NOTES-post.md; title="Post produzione ${NEW_TAG#post-}" ;;
+            *)     kit=suite; notes=NOTES.md; title="$NEW_TAG" ;;
+          esac
+          if [ "$PROMOTE" = true ] && [ "$kit" != post ]; then echo "::error::promote_post is for a post-production release"; exit 1; fi
+          mkdir new
+          tools/prepare_kit.sh "$kit" new
+          python3 tools/reaper_packages.py new/reaper-packages.txt
           if [ -z "$NEW_TAG" ]; then
-            gh release upload "$TAG" reaper-packages.txt install-mac.sh install-windows.ps1 kit/* --clobber --repo "$GITHUB_REPOSITORY"
+            gh release upload "$TAG" new/* --clobber --repo "$GITHUB_REPOSITORY"
+            out="$TAG"
           else
             mkdir dist
             gh release download "$TAG" --dir dist --repo "$GITHUB_REPOSITORY"
-            cp reaper-packages.txt install-mac.sh install-windows.ps1 kit/* dist/
+            cp new/* dist/
             ls -l dist
-            gh release create "$NEW_TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "$NEW_TAG" --notes-file NOTES.md --prerelease --latest=false
+            gh release create "$NEW_TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "$title" --notes-file "$notes" --prerelease --latest=false
+            out="$NEW_TAG"
           fi
+          if [ "$PROMOTE" = true ]; then tools/promote_post.sh "$out"; fi

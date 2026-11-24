@@ -29,6 +29,14 @@ Tutte e due installano i tre plugin, l'app OTIO to RPP, lo script Polywav Manage
 
 Il file di Objet Pa è `LB Spanner.vst3` (REAPER lo mostra come *Objet Pa*): il vecchio nome resta perché i progetti salvati lo ritrovino.
 
+## Corso di post produzione
+Il corso di post produzione del cortometraggio ha un kit suo: OTIO to RPP, Polywav Manager, Objet a Loudness (in arrivo), le estensioni e gli script di REAPER qui sopra e la sua configurazione di REAPER (*Post_Produzione.ReaperConfigZip*), nessuno dei tre plugin spaziali. La sua riga, con REAPER chiuso:
+
+- **macOS**: `curl -fsSL https://github.com/animALavoro/Objet/releases/download/post/install-mac.sh | bash`
+- **Windows**: `irm https://github.com/animALavoro/Objet/releases/download/post/install-windows.ps1 | iex`
+
+**Guida: [Italiano](docs/post/guida.md) · [English](docs/post/guide.md)**. Il kit è nella release [post](https://github.com/animALavoro/Objet/releases/tag/post), sempre pre-release, così la suite resta l'ultima release.
+
 ## Pubblicare una release (manutenzione)
 *Actions > Release > Run workflow*: scegli `all` (la suite) o una parte, una versione e, se serve, il branch o il tag di ogni repository dei sorgenti. Il workflow compila Windows e macOS dai repository privati, firma ad-hoc i bundle macOS e pubblica la release. Lascia *latest* spento per provarla prima (esce come pre-release, che la riga d'installazione non prende):
 
@@ -37,3 +45,5 @@ curl -fsSL https://github.com/animALavoro/Objet/releases/download/suite-VERSIONE
 ```
 
 poi *Edit release*: togli la spunta da *Set as a pre-release*, metti quella su *Set as the latest release*, *Update release*: da quel momento la riga d'installazione la dà a tutti. *publish* spento compila e prova soltanto. I sorgenti si leggono con il segreto `SOURCE_TOKEN` (token fine-grained, contenuti in sola lettura sui repository dei sorgenti, da rinnovare prima della scadenza). *Actions > Mac overlay test* prova l'overlay video di Objet Pa in REAPER su un Mac della CI (screenshot nel branch `ci-shots`).
+
+**Kit di post produzione**: *Actions > Release* con `post` fa la pre-release `post-VERSIONE` (Objet a Loudness solo con `loudness_ref` impostato: fino ad allora il kit è senza); con *latest* acceso i suoi file vanno anche nella release `post`, quella che usa la riga del corso. Per provarla prima lascia *latest* spento: `curl -fsSL https://github.com/animALavoro/Objet/releases/download/post-VERSIONE/install-mac.sh | bash -s -- post VERSIONE`, poi *Actions > Refresh REAPER packages list* con `tag` = `post-VERSIONE` e *promote_post* acceso. La configurazione di REAPER del kit è in `kit/post/` (per ora una copia di quella del corso immersivo). *Kit test (Mac)* e *Kit test (Windows)* accettano `kit` = `post`.

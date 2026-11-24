@@ -29,6 +29,14 @@ Both install the three plugins, the OTIO to RPP app, the Polywav Manager script 
 
 Objet Pa's file is `LB Spanner.vst3` (REAPER lists it as *Objet Pa*): the old name stays so that saved projects find it.
 
+## Post-production course
+The short-film post-production course has its own kit: OTIO to RPP, Polywav Manager, Objet a Loudness (coming soon), the REAPER extensions and scripts above and its REAPER configuration (*Post_Produzione.ReaperConfigZip*), none of the three spatial plugins. Its own line, REAPER closed:
+
+- **macOS**: `curl -fsSL https://github.com/animALavoro/Objet/releases/download/post/install-mac.sh | bash`
+- **Windows**: `irm https://github.com/animALavoro/Objet/releases/download/post/install-windows.ps1 | iex`
+
+**Guide: [English](docs/post/guide.md) · [Italiano](docs/post/guida.md)**. The kit is in the release [post](https://github.com/animALavoro/Objet/releases/tag/post), always a pre-release, so that the suite stays the latest release.
+
 ## Making a release (maintainer)
 *Actions > Release > Run workflow*: choose `all` (the suite) or one part, a version and, if needed, the branch or tag of each source repository. The workflow builds Windows and macOS from the private repositories, signs the macOS bundles ad hoc and publishes the release. Leave *latest* off to try it first (it comes out as a pre-release, which the install line does not pick):
 
@@ -37,3 +45,5 @@ curl -fsSL https://github.com/animALavoro/Objet/releases/download/suite-VERSION/
 ```
 
 then *Edit release*: untick *Set as a pre-release*, tick *Set as the latest release*, *Update release*: from then on the install line gives it to everyone. *publish* off builds and tests only. The source is read with the `SOURCE_TOKEN` secret (fine-grained token, contents read-only on the source repositories, to renew before it expires). *Actions > Mac overlay test* checks Objet Pa's video overlay in REAPER on a CI Mac (screenshots on the `ci-shots` branch).
+
+**Post-production kit**: *Actions > Release* with `post` makes the pre-release `post-VERSION` (Objet a Loudness only with `loudness_ref` set: until then the kit goes without it); with *latest* ticked its files also go to the release `post`, the one the course's line uses. To try it first, leave *latest* off: `curl -fsSL https://github.com/animALavoro/Objet/releases/download/post-VERSION/install-mac.sh | bash -s -- post VERSION`, then *Actions > Refresh REAPER packages list* with `tag` = `post-VERSION` and *promote_post* on. The kit's REAPER configuration is `kit/post/` (for now a copy of the immersive course's). *Kit test (Mac)* and *Kit test (Windows)* take `kit` = `post`.

@@ -2,19 +2,31 @@
 #   irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1 | iex
 #   & ([scriptblock]::Create((irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1))) pa
 #        only Objet Pa (also: plugins = the three plugins, scene, monitor, otio, polywav = Polywav Manager script, ext = ReaPack, SWS, js_ReaScriptAPI, ReaImGui, pie menu, nvk_SEARCH); a second argument is a version (tag <part>-<version>, or suite-<version>)
+#   post = the post-production course kit: OTIO to RPP, Polywav Manager, Objet a Loudness (when the release has it) and ext;
+#   loudness = Objet a Loudness only. The post-production course's own line (its release, tag "post", where this file
+#   defaults to the post kit):
+#   irm https://github.com/animALavoro/Objet/releases/download/post/install-windows.ps1 | iex
 # The plugins go to C:\Program Files\Common Files\VST3 (the standard VST3 folder: Windows asks once for permission),
 # the OTIO to RPP app to your own programs folder with a Start menu shortcut.
-param([string]$What = "all", [string]$Version = "")
+param([string]$What = "", [string]$Version = "")
 $ErrorActionPreference = "Stop"
 $script:ExtFailed = $false
 $ProgressPreference = "SilentlyContinue"            # Invoke-WebRequest is much faster without the progress bar
 
 $Repo = "animALavoro/Objet"
-if ($What -notin @("all", "plugins", "pa", "scene", "monitor", "otio", "polywav", "ext")) { Write-Host "Unknown part '$What': use all, plugins, pa, scene, monitor, otio, polywav or ext."; return }
+# what this file installs without arguments, and from which release (empty = latest): the Release workflow changes
+# these two lines in the copy it puts in the post-production course's release
+$DefaultPart = "all"
+$DefaultTag = ""
+if (-not $What) { $What = $DefaultPart }
+if ($What -notin @("all", "plugins", "pa", "scene", "monitor", "otio", "polywav", "ext", "post", "loudness")) { Write-Host "Unknown part '$What': use all, plugins, pa, scene, monitor, otio, polywav, ext, post or loudness."; return }
 if ($Version -ne "") {
     $tag = if ($What -in @("all", "plugins")) { "suite-$Version" } else { "$What-$Version" }
     $Base = "https://github.com/$Repo/releases/download/$tag"
+} elseif ($DefaultTag -ne "") { $Base = "https://github.com/$Repo/releases/download/$DefaultTag"
 } else { $Base = "https://github.com/$Repo/releases/latest/download" }
+# this same installer's address, for the message at the end
+$Self = if ($DefaultTag -ne "") { "https://github.com/$Repo/releases/download/$DefaultTag/install-windows.ps1" } else { "https://github.com/$Repo/releases/latest/download/install-windows.ps1" }
 
 if (Get-Process -Name "reaper" -ErrorAction SilentlyContinue) {
     Write-Host "REAPER is open: close it (File > Quit) and run this line again."; return
@@ -41,6 +53,13 @@ function Stage-Plugin([string]$zip, [string]$bundle) {
     $src = Join-Path $dir $bundle
     if (-not (Test-Path $src)) { throw "$bundle not found in $zip" }
     Copy-Item -Recurse -Force $src $stage
+}
+
+# a plugin that a release may not have yet (Objet a Loudness in the post-production kit): skipped when it is not there
+function Stage-OptionalPlugin([string]$zip, [string]$bundle, [string]$name) {
+    $there = $true
+    try { Invoke-WebRequest -UseBasicParsing -Method Head -Uri "$Base/$zip" | Out-Null } catch { $there = $false }
+    if ($there) { Stage-Plugin $zip $bundle } else { Write-Host "- ${name}: not in this release yet" }
 }
 
 function Install-Otio {
@@ -115,10 +134,12 @@ function Install-Ext {
     }
 }
 
-Write-Host "Objet suite: installing from $Base"
+if ($What -eq "post") { Write-Host "Objet, post-production kit: installing from $Base" } else { Write-Host "Objet suite: installing from $Base" }
 if ($What -in @("all", "plugins", "pa"))      { Stage-Plugin "Objet-Pa-Windows.zip" "LB Spanner.vst3" }
 if ($What -in @("all", "plugins", "scene"))   { Stage-Plugin "Objet-a-Scene-Windows.zip" "Objet a Scene.vst3" }
 if ($What -in @("all", "plugins", "monitor")) { Stage-Plugin "Objet-a-Monitor-Windows.zip" "Objet a Monitor.vst3" }
+if ($What -eq "loudness")                     { Stage-Plugin "Objet-a-Loudness-Windows.zip" "Objet a Loudness.vst3" }
+if ($What -eq "post")                         { Stage-OptionalPlugin "Objet-a-Loudness-Windows.zip" "Objet a Loudness.vst3" "Objet a Loudness" }
 
 $plugins = @(Get-ChildItem $stage -Directory)
 if ($plugins.Count -gt 0) {
@@ -144,14 +165,14 @@ if ($plugins.Count -gt 0) {
         Write-Host "  add that folder in REAPER: Options > Preferences > Plug-ins > VST > VST plug-in paths > Add"
     }
 }
-if ($What -in @("all", "otio")) { Install-Otio }
-if ($What -in @("all", "polywav")) { Install-Polywav }
-if ($What -in @("all", "ext"))  { Install-Ext }
+if ($What -in @("all", "post", "otio")) { Install-Otio }
+if ($What -in @("all", "post", "polywav")) { Install-Polywav }
+if ($What -in @("all", "post", "ext"))  { Install-Ext }
 
 Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $tmp
 Write-Host ""
 if ($script:ExtFailed) {
     Write-Host "Some REAPER extensions or scripts could not be downloaded (listed above): on another network, run"
-    Write-Host "  & ([scriptblock]::Create((irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1))) ext"
+    Write-Host "  & ([scriptblock]::Create((irm $Self))) ext"
 }
 Write-Host "Done. Open REAPER: Options > Preferences > Plug-ins > VST > Clear cache/re-scan."

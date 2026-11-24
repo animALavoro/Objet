@@ -3,12 +3,19 @@ name: Kit test (Windows)
 # By hand: install-windows.ps1 of a release on a CI Windows machine, as a student runs it in PowerShell.
 # With "block_codeberg" codeberg.org does not resolve (as on a school network): the installer must use the mirrors.
 # Then checks that every file of reaper-packages.txt for win64 is in REAPER's resource folder.
+# kit = post: the post-production course's kit (release "post", or post-<version>): no Objet Pa, Scene, Monitor;
+# Objet a Loudness when the release has it.
 
 on:
   workflow_dispatch:
     inputs:
+      kit:
+        description: "suite = the immersive course (latest release); post = the post-production course (release post)"
+        type: choice
+        options: [suite, post]
+        default: suite
       version:
-        description: "Suite version (tag suite-<version>); empty = latest"
+        description: "Version (tag suite-<version> or post-<version>); empty = the one students get"
         default: ""
       block_codeberg:
         description: "Make codeberg.org unreachable"
@@ -30,11 +37,17 @@ jobs:
       - name: Install as a student (Windows PowerShell)
         shell: powershell
         env:
+          KIT: ${{ inputs.kit }}
           VERSION: ${{ inputs.version }}
         run: |
+          $post = $env:KIT -eq "post"
           if ($env:VERSION) {
-            $s = irm "https://github.com/animALavoro/Objet/releases/download/suite-$env:VERSION/install-windows.ps1"
-            & ([scriptblock]::Create($s)) all $env:VERSION
+            $tag = if ($post) { "post-$env:VERSION" } else { "suite-$env:VERSION" }
+            $part = if ($post) { "post" } else { "all" }
+            $s = irm "https://github.com/animALavoro/Objet/releases/download/$tag/install-windows.ps1"
+            & ([scriptblock]::Create($s)) $part $env:VERSION
+          } elseif ($post) {
+            irm https://github.com/animALavoro/Objet/releases/download/post/install-windows.ps1 | iex
           } else {
             irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1 | iex
           }
@@ -42,9 +55,12 @@ jobs:
       - name: Check the files
         shell: pwsh
         env:
+          KIT: ${{ inputs.kit }}
           VERSION: ${{ inputs.version }}
         run: |
-          $base = if ($env:VERSION) { "https://github.com/animALavoro/Objet/releases/download/suite-$env:VERSION" } else { "https://github.com/animALavoro/Objet/releases/latest/download" }
+          $post = $env:KIT -eq "post"
+          $r = "https://github.com/animALavoro/Objet/releases"
+          $base = if ($env:VERSION) { if ($post) { "$r/download/post-$env:VERSION" } else { "$r/download/suite-$env:VERSION" } } elseif ($post) { "$r/download/post" } else { "$r/latest/download" }
           $res = Join-Path $env:APPDATA "REAPER"
           $missing = 0
           foreach ($line in (Invoke-WebRequest -UseBasicParsing "$base/reaper-packages.txt").Content -split "`n") {
@@ -56,8 +72,17 @@ jobs:
           foreach ($p in @("UserPlugins\reaper_reapack-x64.dll", "Scripts\Polywav Manager\Polywav Manager.lua")) {
             if (-not (Test-Path (Join-Path $res $p))) { Write-Host "MISSING $p"; $missing++ }
           }
-          foreach ($p in @("LB Spanner.vst3", "Objet a Scene.vst3", "Objet a Monitor.vst3")) {
-            if (-not (Test-Path (Join-Path "$env:CommonProgramFiles\VST3" $p))) { Write-Host "MISSING VST3 $p"; $missing++ }
+          $vst3 = Join-Path $env:CommonProgramFiles "VST3"
+          $suite = @("LB Spanner.vst3", "Objet a Scene.vst3", "Objet a Monitor.vst3")
+          if ($post) {
+            foreach ($p in $suite) { if (Test-Path (Join-Path $vst3 $p)) { Write-Host "NOT EXPECTED in the post kit: VST3 $p"; $missing++ } }
+            $hasLoudness = $true
+            try { Invoke-WebRequest -UseBasicParsing -Method Head -Uri "$base/Objet-a-Loudness-Windows.zip" | Out-Null } catch { $hasLoudness = $false }
+            if ($hasLoudness -and -not (Test-Path (Join-Path $vst3 "Objet a Loudness.vst3"))) { Write-Host "MISSING VST3 Objet a Loudness.vst3"; $missing++ }
+            if (-not $hasLoudness) { Write-Host "Objet a Loudness: not in this release yet" }
+            try { Invoke-WebRequest -UseBasicParsing -Method Head -Uri "$base/Post_Produzione.ReaperConfigZip" | Out-Null } catch { Write-Host "MISSING in the release: Post_Produzione.ReaperConfigZip"; $missing++ }
+          } else {
+            foreach ($p in $suite) { if (-not (Test-Path (Join-Path $vst3 $p))) { Write-Host "MISSING VST3 $p"; $missing++ } }
           }
           if (-not (Test-Path "$env:LOCALAPPDATA\Programs\OTIO to RPP\OTIO to RPP.exe")) { Write-Host "MISSING OTIO to RPP"; $missing++ }
           Get-ChildItem -Recurse $res | Select-Object -ExpandProperty FullName | Write-Host
