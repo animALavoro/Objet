@@ -6,7 +6,8 @@
 #                                  ext = ReaPack, SWS, js_ReaScriptAPI, ReaImGui, pie menu, nvk_SEARCH)
 #   ... | bash -s -- pa v0.2.0     a release of one plugin (tag pa-v0.2.0)
 #   ... | bash -s -- post          the post-production course kit: OTIO to RPP, Polywav Manager, Objet a Loudness
-#                                  (when the release has it) and ext; also loudness = Objet a Loudness only
+#                                  (when the release has it), free plugins by other authors (thirdparty) and ext;
+#                                  also loudness = Objet a Loudness only
 # The post-production course's own line (its release, tag "post", where this file defaults to the post kit):
 #   curl -fsSL https://github.com/animALavoro/Objet/releases/download/post/install-mac.sh | bash
 # Downloads with curl (no quarantine flag), installs in the user's own folders: no administrator password.
@@ -27,8 +28,8 @@ SCRIPTS="$RESOURCE/Scripts"
 [ "$(uname -s)" = "Darwin" ] || { echo "This installer is for macOS."; exit 1; }
 
 case "$WHAT" in
-  all|plugins|pa|scene|monitor|otio|polywav|ext|post|loudness) ;;
-  *) echo "Unknown part '$WHAT': use all, plugins, pa, scene, monitor, otio, polywav, ext, post or loudness."; exit 1 ;;
+  all|plugins|pa|scene|monitor|otio|polywav|ext|post|loudness|thirdparty) ;;
+  *) echo "Unknown part '$WHAT': use all, plugins, pa, scene, monitor, otio, polywav, ext, post, loudness or thirdparty."; exit 1 ;;
 esac
 
 if [ -n "$VERSION" ]; then
@@ -135,6 +136,48 @@ ext() {
   fi
 }
 
+# free plugins by other authors (post-production kit): third-party-plugins.txt (made at release time) gives each
+# plugin's file on its author's own release page, per platform. A .dmg holds the .vst3 bundles or a .pkg with them:
+# the bundles are copied to the user's VST3 folder (no password); a bundle without a valid signature gets an ad-hoc
+# one (Apple silicon does not load unsigned code). Plugins that need a newer macOS are skipped and listed at the end.
+thirdparty() {
+  curl -fsSL --retry 3 -o "$TMP/thirdparty.txt" "$BASE/third-party-plugins.txt" 2>/dev/null || { echo "- other plugins: none in this release"; return 0; }
+  local plat; if [ "$(uname -m)" = arm64 ]; then plat=darwin-arm64; else plat=darwin64; fi
+  local macmajor; macmajor=$(sw_vers -productVersion | cut -d. -f1)
+  local p name kind url minmac
+  while IFS=$'\t' read -r p name kind url minmac; do
+    [ "$p" = "$plat" ] || continue
+    echo "- $name"
+    if [ "${minmac:-0}" -gt "$macmajor" ]; then
+      echo "  needs macOS $minmac or later (this Mac: $(sw_vers -productVersion)): skipped"
+      THIRD_SKIPPED="${THIRD_SKIPPED:-}\n    $name (macOS $minmac or later)"; continue
+    fi
+    local d="$TMP/tp" ; rm -rf "$d" && mkdir -p "$d/mnt" "$d/pkg"
+    if ! curl -fL --retry 3 --progress-bar -o "$d/file.dmg" "$url" < /dev/null; then
+      echo "  download failed: $url"; THIRD_FAILED="${THIRD_FAILED:-}\n    $name"; continue
+    fi
+    if ! hdiutil attach -nobrowse -readonly -noautoopen -mountpoint "$d/mnt" "$d/file.dmg" < /dev/null > /dev/null; then
+      echo "  could not open the disk image"; THIRD_FAILED="${THIRD_FAILED:-}\n    $name"; continue
+    fi
+    local src="$d/mnt"
+    if [ -z "$(find "$d/mnt" -maxdepth 4 -name '*.vst3' -print -quit)" ]; then
+      local pkg; pkg=$(find "$d/mnt" -maxdepth 2 -name '*.pkg' -print -quit)
+      if [ -n "$pkg" ] && pkgutil --expand-full "$pkg" "$d/pkg/x" < /dev/null > /dev/null 2>&1; then src="$d/pkg/x"; fi
+    fi
+    local n=0 b
+    while IFS= read -r b; do
+      local base; base=$(basename "$b")
+      rm -rf "$VST3/$base"
+      ditto "$b" "$VST3/$base" < /dev/null
+      xattr -dr com.apple.quarantine "$VST3/$base" 2>/dev/null || true
+      codesign --verify --deep --strict "$VST3/$base" > /dev/null 2>&1 || codesign --force --deep --sign - "$VST3/$base" > /dev/null 2>&1 || true
+      echo "  installed $VST3/$base"; n=$((n + 1))
+    done < <(find "$src" -name '*.vst3' -type d -prune)
+    hdiutil detach "$d/mnt" -quiet > /dev/null 2>&1 || true
+    [ "$n" -gt 0 ] || { echo "  no VST3 plugin found in the file"; THIRD_FAILED="${THIRD_FAILED:-}\n    $name"; }
+  done < "$TMP/thirdparty.txt"
+}
+
 if [ "$WHAT" = post ]; then echo "Objet, post-production kit: installing from $BASE"; else echo "Objet suite: installing from $BASE"; fi
 case "$WHAT" in
   all)     plugin Objet-Pa-macOS.zip "LB Spanner.vst3" "Objet Pa"
@@ -155,7 +198,9 @@ case "$WHAT" in
   post)    otio
            polywav
            optional_plugin Objet-a-Loudness-macOS.zip "Objet a Loudness.vst3" "Objet a Loudness"
+           thirdparty
            ext ;;
+  thirdparty) thirdparty ;;
   loudness) plugin Objet-a-Loudness-macOS.zip "Objet a Loudness.vst3" "Objet a Loudness" ;;
 esac
 
@@ -164,4 +209,9 @@ if [ -n "${EXT_FAILED:-}" ]; then
   echo "Some REAPER extensions or scripts could not be downloaded (listed above): on another network, run"
   echo "  $LINE -s -- ext"
 fi
+if [ -n "${THIRD_FAILED:-}" ]; then
+  printf "Some plugins by other authors were not installed:%b\n" "$THIRD_FAILED"
+  echo "  on another network, run: $LINE -s -- thirdparty"
+fi
+if [ -n "${THIRD_SKIPPED:-}" ]; then printf "Not for this Mac:%b\n" "$THIRD_SKIPPED"; fi
 echo "Done. Open REAPER: REAPER > Settings > Plug-ins > VST > Clear cache/re-scan."

@@ -55,6 +55,11 @@ jobs:
               [ ! -e "$HOME/Library/Audio/Plug-Ins/VST3/$b" ] || { echo "::error::$b installed by the post kit"; exit 1; }
             done
             ls "$HOME/Library/Audio/Plug-Ins/VST3" || true
+            # free plugins by other authors: present and loadable (valid signature, ad-hoc at least)
+            for n in "ZL Equalizer 2.vst3" "ZL Compressor.vst3" "ZL Limiter.vst3" "DragonflyHallReverb.vst3"; do
+              [ -d "$HOME/Library/Audio/Plug-Ins/VST3/$n" ] || { echo "::error::$n not installed"; exit 1; }
+              codesign --verify --deep --strict "$HOME/Library/Audio/Plug-Ins/VST3/$n" || { echo "::error::$n: invalid signature"; exit 1; }
+            done
           fi
           RES="$HOME/Library/Application Support/REAPER"
           mkdir -p "$RES" && cd "$RES" && unzip -o -q "$TMPDIR/cfg.zip" && rm -f reaper-configzip-info

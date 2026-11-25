@@ -265,6 +265,8 @@ jobs:
           if [ "$WHAT" = post ]; then kit=post; else kit=suite; fi
           tools/prepare_kit.sh "$kit" dist
           python3 tools/reaper_packages.py dist/reaper-packages.txt   # SWS, js_ReaScriptAPI, ReaImGui, pie menu, nvk_SEARCH: where to get them
+          # post-production kit: free plugins by other authors, from their latest GitHub releases (ZL, Dragonfly)
+          if [ "$kit" = post ]; then python3 tools/third_party_plugins.py dist/third-party-plugins.txt; fi
           ls -l dist
           if [ "$WHAT" = post ]; then
             # always a pre-release: the suite stays GitHub's latest (the immersive course's install line)

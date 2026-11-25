@@ -24,7 +24,9 @@ The kit of the short-film post-production course: the tools to bring into REAPER
 |---|---|---|
 | **OTIO to RPP** | An app that converts a timeline exported from Resolve (`.otio`) into a REAPER project (`.rpp`). | A separate app |
 | **Polywav Manager** | A REAPER script: puts the mono file of each channel of the recorder's polywav files on its own track. | REAPER's action list |
-| **Objet a Loudness** | A loudness meter (VST3). *Coming soon: the kit installs it as soon as it is ready.* | On the master |
+| **Objet a Loudness** | A loudness meter (VST3). | On the master |
+| **ZL Equalizer 2, ZL Compressor, ZL Limiter** | Equalizer, compressor and limiter (VST3, free, by ZL Audio). | On tracks and the master |
+| **Dragonfly Reverb** | Hall, Room, Plate and Early Reflections reverbs (VST3, free). | On tracks or buses |
 | **The course configuration** | Shortcuts, pie menu, project settings, ReaPack repositories. | Imported into REAPER once |
 
 ## 2. What you need
@@ -50,7 +52,7 @@ One line installs everything, always with **REAPER closed**. The same line also 
    ```
    curl -fsSL https://github.com/animALavoro/Objet/releases/download/post/install-mac.sh | bash
    ```
-3. It installs the *OTIO to RPP* app in your own Applications folder (Finder > Go > Home > Applications), the *Polywav Manager* script in REAPER's Scripts folder, *Objet a Loudness* in `~/Library/Audio/Plug-Ins/VST3` (when it is there) and the course's REAPER extensions and scripts (**ReaPack**, **SWS**, **js_ReaScriptAPI**, **ReaImGui**, pie menu, nvk_SEARCH, chapter 5). No password needed.
+3. It installs the *OTIO to RPP* app in your own Applications folder (Finder > Go > Home > Applications), the *Polywav Manager* script in REAPER's Scripts folder, *Objet a Loudness*, ZL Equalizer 2, ZL Compressor, ZL Limiter and Dragonfly Reverb in `~/Library/Audio/Plug-Ins/VST3` and the course's REAPER extensions and scripts (**ReaPack**, **SWS**, **js_ReaScriptAPI**, **ReaImGui**, pie menu, nvk_SEARCH, chapter 5). No password needed.
 
 **Why the Terminal?** The kit's app and plugin have no Apple developer signature: downloaded with a browser, macOS blocks them. Downloaded from the Terminal, they open normally.
 
@@ -60,7 +62,7 @@ One line installs everything, always with **REAPER closed**. The same line also 
    ```
    irm https://github.com/animALavoro/Objet/releases/download/post/install-windows.ps1 | iex
    ```
-3. *OTIO to RPP* goes to the Start menu; the *Polywav Manager* script and the course's extensions and scripts (**ReaPack**, **SWS**, **js_ReaScriptAPI**, **ReaImGui**, pie menu, nvk_SEARCH, chapter 5) to REAPER's folder. *Objet a Loudness* (when it is there) goes to `C:\Program Files\Common Files\VST3`: for this Windows asks once for permission to make changes, answer **Yes**. If you answer No, the plugin goes to your user folder and the script tells you which path to add in REAPER.
+3. *OTIO to RPP* goes to the Start menu; the *Polywav Manager* script and the course's extensions and scripts (**ReaPack**, **SWS**, **js_ReaScriptAPI**, **ReaImGui**, pie menu, nvk_SEARCH, chapter 5) to REAPER's folder. *Objet a Loudness*, ZL Equalizer 2, ZL Compressor, ZL Limiter and Dragonfly Reverb go to `C:\Program Files\Common Files\VST3`: for this Windows asks once for permission to make changes, answer **Yes**. If you answer No, the plugin goes to your user folder and the script tells you which path to add in REAPER.
 
 **Careful:** this is *this* course's line. The line on the repository's main page installs the immersive cinema course's suite, which is not needed here.
 
@@ -108,13 +110,13 @@ Details in the script's README, in the same folder (`README.md`).
 
 ## 8. Measuring loudness (Objet a Loudness)
 
-*Coming soon.* Objet a Loudness is the kit's loudness meter: as soon as it is ready, the same line of chapter 4 installs it (run it again with REAPER closed). Then in REAPER: *Plug-ins > VST* → **Clear cache/re-scan**, and on the master: **FX** → search *Objet a Loudness*.
+Objet a Loudness is the kit's loudness meter, installed by the line of chapter 4. In REAPER: *Plug-ins > VST* → **Clear cache/re-scan**, and on the master: **FX** → search *Objet a Loudness*.
 
 ## 9. Updating and uninstalling
 
 - **Update**: run the same line of chapter 4 again, with REAPER closed.
-- **Uninstall on a Mac**: delete *OTIO to RPP* from your own Applications, the folder `~/Library/Application Support/REAPER/Scripts/Polywav Manager` and `Objet a Loudness.vst3` from `~/Library/Audio/Plug-Ins/VST3`.
-- **Uninstall on Windows**: delete the folder `%LOCALAPPDATA%\Programs\OTIO to RPP` and the Start menu shortcut, the folder `%APPDATA%\REAPER\Scripts\Polywav Manager` and `Objet a Loudness.vst3` from `C:\Program Files\Common Files\VST3`.
+- **Uninstall on a Mac**: delete *OTIO to RPP* from your own Applications, the folder `~/Library/Application Support/REAPER/Scripts/Polywav Manager` and from `~/Library/Audio/Plug-Ins/VST3` `Objet a Loudness.vst3`, the three `ZL ….vst3` and the four `Dragonfly….vst3`.
+- **Uninstall on Windows**: delete the folder `%LOCALAPPDATA%\Programs\OTIO to RPP` and the Start menu shortcut, the folder `%APPDATA%\REAPER\Scripts\Polywav Manager` and `Objet a Loudness.vst3` and the four `Dragonfly….vst3` from `C:\Program Files\Common Files\VST3`; the ZL plugins are removed from *Settings > Apps* (ZL Equalizer 2, ZL Compressor, ZL Limiter).
 
 ## 10. Common problems
 

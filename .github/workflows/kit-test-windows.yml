@@ -81,6 +81,11 @@ jobs:
             if ($hasLoudness -and -not (Test-Path (Join-Path $vst3 "Objet a Loudness.vst3"))) { Write-Host "MISSING VST3 Objet a Loudness.vst3"; $missing++ }
             if (-not $hasLoudness) { Write-Host "Objet a Loudness: not in this release yet" }
             try { Invoke-WebRequest -UseBasicParsing -Method Head -Uri "$base/Post_Produzione.ReaperConfigZip" | Out-Null } catch { Write-Host "MISSING in the release: Post_Produzione.ReaperConfigZip"; $missing++ }
+            # free plugins by other authors (ZL .msi installers, Dragonfly zip)
+            Get-ChildItem -Recurse -Directory $vst3 -Filter *.vst3 | ForEach-Object { Write-Host "VST3: $($_.FullName)" }
+            foreach ($n in @("ZL Equalizer 2.vst3", "ZL Compressor.vst3", "ZL Limiter.vst3", "Dragonfly*.vst3")) {
+              if (-not (Get-ChildItem -Recurse -Directory $vst3 -Filter $n)) { Write-Host "MISSING VST3 $n"; $missing++ }
+            }
           } else {
             foreach ($p in $suite) { if (-not (Test-Path (Join-Path $vst3 $p))) { Write-Host "MISSING VST3 $p"; $missing++ } }
           }
