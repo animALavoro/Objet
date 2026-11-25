@@ -44,6 +44,8 @@ jobs:
           mkdir new
           tools/prepare_kit.sh "$kit" new
           python3 tools/reaper_packages.py new/reaper-packages.txt
+          # post-production kit: free plugins by other authors, from their latest GitHub releases (ZL, Dragonfly)
+          if [ "$kit" = post ]; then python3 tools/third_party_plugins.py new/third-party-plugins.txt; fi
           if [ -z "$NEW_TAG" ]; then
             gh release upload "$TAG" new/* --clobber --repo "$GITHUB_REPOSITORY"
             out="$TAG"

@@ -19,7 +19,7 @@ $Repo = "animALavoro/Objet"
 $DefaultPart = "all"
 $DefaultTag = ""
 if (-not $What) { $What = $DefaultPart }
-if ($What -notin @("all", "plugins", "pa", "scene", "monitor", "otio", "polywav", "ext", "post", "loudness")) { Write-Host "Unknown part '$What': use all, plugins, pa, scene, monitor, otio, polywav, ext, post or loudness."; return }
+if ($What -notin @("all", "plugins", "pa", "scene", "monitor", "otio", "polywav", "ext", "post", "loudness", "thirdparty")) { Write-Host "Unknown part '$What': use all, plugins, pa, scene, monitor, otio, polywav, ext, post, loudness or thirdparty."; return }
 if ($Version -ne "") {
     $tag = if ($What -in @("all", "plugins")) { "suite-$Version" } else { "$What-$Version" }
     $Base = "https://github.com/$Repo/releases/download/$tag"
@@ -134,24 +134,73 @@ function Install-Ext {
     }
 }
 
+# free plugins by other authors (post-production kit): third-party-plugins.txt (made at release time) gives each
+# plugin's file on its author's own release page, per platform. The processor decides the version: ARM64, or x86-64
+# with AVX2 when the processor has it (faster), else plain x86-64. A .zip's .vst3 folders are copied with our plugins;
+# an .msi is run silently in the same administrator step.
+$script:Msis = @()
+$script:ThirdFailed = @()
+function Get-Platform {
+    $arch = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
+    if ($arch -eq "ARM64") { return @("winarm64", "win64") }
+    $avx2 = $false
+    try {
+        Add-Type -Namespace Objet -Name Cpu -MemberDefinition '[DllImport("kernel32.dll")] public static extern bool IsProcessorFeaturePresent(uint f);' -ErrorAction Stop
+        $avx2 = [Objet.Cpu]::IsProcessorFeaturePresent(40)    # PF_AVX2_INSTRUCTIONS_AVAILABLE
+    } catch { }
+    if ($avx2) { return @("win64-avx2", "win64") } else { return @("win64") }
+}
+function Stage-ThirdParty {
+    $list = Join-Path $tmp "thirdparty.txt"
+    try { Invoke-WebRequest -UseBasicParsing -Uri "$Base/third-party-plugins.txt" -OutFile $list } catch { Write-Host "- other plugins: none in this release"; return }
+    $prefs = Get-Platform
+    $lines = @(Get-Content $list | ForEach-Object { ,($_ -split "`t") } | Where-Object { $_.Count -ge 4 })
+    foreach ($name in ($lines | ForEach-Object { $_[1] } | Select-Object -Unique)) {
+        $pick = $null
+        foreach ($pf in $prefs) { $pick = $lines | Where-Object { $_[1] -eq $name -and $_[0] -eq $pf } | Select-Object -First 1; if ($pick) { break } }
+        if (-not $pick) { continue }
+        Write-Host "- $name ($($pick[0]))"
+        $file = Join-Path $tmp ("tp-" + [guid]::NewGuid().ToString("N") + "." + $pick[2])
+        try { Invoke-WebRequest -UseBasicParsing -TimeoutSec 300 -Uri $pick[3] -OutFile $file; Unblock-File $file }
+        catch { Write-Host "  download failed: $($pick[3])"; $script:ThirdFailed += $name; continue }
+        if ($pick[2] -eq "msi") {
+            $script:Msis += $file
+        } else {
+            $dir = "$file.d"
+            Expand-Archive -Force $file $dir
+            Get-ChildItem -Recurse $dir | Unblock-File
+            $found = @(Get-ChildItem -Recurse -Directory $dir -Filter *.vst3 | Where-Object { $_.Parent.Name -notlike "*.vst3" -and $_.FullName -notmatch '\.vst3\\.+\.vst3$' })
+            foreach ($b in $found) { Copy-Item -Recurse -Force $b.FullName $stage }
+            if ($found.Count -eq 0) { Write-Host "  no VST3 plugin found in the file"; $script:ThirdFailed += $name }
+        }
+    }
+}
+
 if ($What -eq "post") { Write-Host "Objet, post-production kit: installing from $Base" } else { Write-Host "Objet suite: installing from $Base" }
 if ($What -in @("all", "plugins", "pa"))      { Stage-Plugin "Objet-Pa-Windows.zip" "LB Spanner.vst3" }
 if ($What -in @("all", "plugins", "scene"))   { Stage-Plugin "Objet-a-Scene-Windows.zip" "Objet a Scene.vst3" }
 if ($What -in @("all", "plugins", "monitor")) { Stage-Plugin "Objet-a-Monitor-Windows.zip" "Objet a Monitor.vst3" }
 if ($What -eq "loudness")                     { Stage-Plugin "Objet-a-Loudness-Windows.zip" "Objet a Loudness.vst3" }
 if ($What -eq "post")                         { Stage-OptionalPlugin "Objet-a-Loudness-Windows.zip" "Objet a Loudness.vst3" "Objet a Loudness" }
+if ($What -in @("post", "thirdparty"))        { Stage-ThirdParty }
 
 $plugins = @(Get-ChildItem $stage -Directory)
-if ($plugins.Count -gt 0) {
+if ($plugins.Count -gt 0 -or $script:Msis.Count -gt 0) {
     $vst3 = Join-Path $env:CommonProgramFiles "VST3"
     $names = ($plugins | ForEach-Object { $_.Name }) -join ", "
-    Write-Host "- copying $names to $vst3 (Windows asks for permission)"
-    $cmd = "New-Item -ItemType Directory -Force '$vst3' | Out-Null; " + (($plugins | ForEach-Object {
+    if ($plugins.Count -gt 0) { Write-Host "- copying $names to $vst3 (Windows asks for permission)" }
+    $parts = @("New-Item -ItemType Directory -Force '$vst3' | Out-Null")
+    $parts += @($plugins | ForEach-Object {
         "Remove-Item -Recurse -Force -ErrorAction SilentlyContinue '" + (Join-Path $vst3 $_.Name) + "'; Copy-Item -Recurse -Force '" + $_.FullName + "' '$vst3'"
-    }) -join "; ")
+    })
+    # installers of other authors' plugins, silently, in the same administrator step; the exit code tells if one failed
+    foreach ($m in $script:Msis) { $parts += "`$r = (Start-Process msiexec -Wait -PassThru -ArgumentList @('/i', '$m', '/qn', '/norestart')).ExitCode; if (`$r -ne 0 -and `$r -ne 3010) { exit 20 }" }
+    $cmd = $parts -join "; "
+    if ($script:Msis.Count -gt 0) { Write-Host "- installing $($script:Msis.Count) plugin(s) by other authors" }
     try {
         $p = Start-Process powershell -Verb RunAs -Wait -PassThru -WindowStyle Hidden -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", $cmd)
-        if ($p.ExitCode -ne 0) { throw "copy failed ($($p.ExitCode))" }
+        if ($p.ExitCode -eq 20) { Write-Host "  an installer of another author's plugin failed"; $script:ThirdFailed += "plugin installer (.msi)" }
+        elseif ($p.ExitCode -ne 0) { throw "copy failed ($($p.ExitCode))" }
         Write-Host "  installed in $vst3"
     } catch {
         # no permission: the user's own VST3 folder, to add in REAPER
@@ -163,6 +212,7 @@ if ($plugins.Count -gt 0) {
         }
         Write-Host "  no permission: installed in $user"
         Write-Host "  add that folder in REAPER: Options > Preferences > Plug-ins > VST > VST plug-in paths > Add"
+        if ($script:Msis.Count -gt 0) { Write-Host "  plugins by other authors that need an installer were not installed (no permission)"; $script:ThirdFailed += "plugin installers (.msi): need permission" }
     }
 }
 if ($What -in @("all", "post", "otio")) { Install-Otio }
@@ -174,5 +224,9 @@ Write-Host ""
 if ($script:ExtFailed) {
     Write-Host "Some REAPER extensions or scripts could not be downloaded (listed above): on another network, run"
     Write-Host "  & ([scriptblock]::Create((irm $Self))) ext"
+}
+if ($script:ThirdFailed.Count -gt 0) {
+    Write-Host "Some plugins by other authors were not installed: $($script:ThirdFailed -join ', ')"
+    Write-Host "  run again: & ([scriptblock]::Create((irm $Self))) thirdparty"
 }
 Write-Host "Done. Open REAPER: Options > Preferences > Plug-ins > VST > Clear cache/re-scan."
