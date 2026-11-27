@@ -2,7 +2,7 @@
 -- course configuration: which extensions REAPER loaded, which scripts are registered, then each script is run and the
 -- workflow takes a screenshot (phase files $TMPDIR/kit_phase_<n>, acknowledged by $TMPDIR/kit_ack_<n>).
 -- Post-production kit: the course's project template is opened (as File > Project templates does) and every FX in it
--- must load; the kit's plugins that the template does not use are put on a track of its own and must load too.
+-- must load; before it, every plugin of the kit is put on a track by name and must load.
 -- Log in $TMPDIR/kit_test.txt. Quits REAPER at the end.
 local tmp = (os.getenv("TMPDIR") or "/tmp"):gsub("/$", "")
 local f = io.open(tmp .. "/kit_test.txt", "w")
@@ -59,21 +59,26 @@ local function fx_check(tr, i, where)
   log(((np > 0 and not off) and "ok   " or "FAIL ") .. "FX " .. name .. " (" .. where .. ", " .. np .. " parameters" .. (off and ", offline" or "") .. ")")
 end
 local TEMPLATE = res .. "/ProjectTemplates/Template_ProduzioneCinematografica.rpp"
+local KIT_FX = { "Objet a Loudness", "ZL Equalizer 2", "ZL Compressor", "ZL Limiter", "Dragonfly Hall Reverb",
+                 "Dragonfly Room Reverb", "Dragonfly Plate Reverb", "Dragonfly Early Reflections" }
 local function template_check()
   if not exists(TEMPLATE) then log("no project template (not the post kit, or not in this release)") return end
+  -- first every plugin of the kit, by name, on a track of the test project (saved: no "save changes?" question)
+  reaper.InsertTrackAtIndex(reaper.CountTracks(0), false)
+  local kt = reaper.GetTrack(0, reaper.CountTracks(0) - 1)
+  for _, p in ipairs(KIT_FX) do
+    local i = reaper.TrackFX_AddByName(kt, "VST3:" .. p, false, -1)
+    if i < 0 then log("FAIL FX " .. p .. " (not found by REAPER)") else fx_check(kt, i, "kit check track") end
+  end
+  reaper.Main_SaveProject(0, false)
+  -- then the template, as File > Project templates opens it (a "Project Load Warning" waits for OK: the workflow
+  -- takes its screenshot, then presses OK)
   reaper.Main_openProject("template:" .. TEMPLATE)
   log("template: " .. reaper.CountTracks(0) .. " tracks")
   for t = -1, reaper.CountTracks(0) - 1 do
     local tr = t < 0 and reaper.GetMasterTrack(0) or reaper.GetTrack(0, t)
     local _, tn = reaper.GetTrackName(tr)
     for i = 0, reaper.TrackFX_GetCount(tr) - 1 do fx_check(tr, i, "track " .. (t + 1) .. " " .. tn) end
-  end
-  -- the kit's other plugins, not in the template
-  reaper.InsertTrackAtIndex(reaper.CountTracks(0), false)
-  local tr = reaper.GetTrack(0, reaper.CountTracks(0) - 1)
-  for _, p in ipairs({ "ZL Compressor", "ZL Limiter", "Dragonfly Plate Reverb", "Dragonfly Early Reflections" }) do
-    local i = reaper.TrackFX_AddByName(tr, "VST3:" .. p, false, -1)
-    if i < 0 then log("FAIL FX " .. p .. " (not found by REAPER)") else fx_check(tr, i, "kit check track") end
   end
   reaper.Main_SaveProjectEx(0, tmp .. "/kit_template_check.rpp", 0)   -- saved: no "save changes?" question at the end
 end
