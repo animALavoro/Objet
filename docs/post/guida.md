@@ -27,6 +27,7 @@ Il kit del corso di post produzione del cortometraggio: gli strumenti per portar
 | **Objet a Loudness** | Misuratore di loudness (VST3). | Sul master |
 | **ZL Equalizer 2, ZL Compressor, ZL Limiter** | Equalizzatore, compressore e limiter (VST3, gratuiti, di ZL Audio). | Sulle tracce e sul master |
 | **Dragonfly Reverb** | Riverberi Hall, Room, Plate ed Early Reflections (VST3, gratuiti). | Sulle tracce o sui bus |
+| **Template di progetto** | Tracce, bus e routing del mix del corto, pronti. | *File > Project templates* |
 | **Configurazione del corso** | Scorciatoie, Pie menu, impostazioni di progetto, archivi di ReaPack. | Si importa in REAPER una volta |
 
 ## 2. Cosa ti serve
@@ -76,7 +77,8 @@ Il corso usa una configurazione di REAPER già preparata: gli archivi di ReaPack
 
 L'importazione sostituisce le impostazioni di REAPER che hai adesso: se usi già REAPER per altro, prima salva le tue con **Export configuration…** nella stessa pagina.
 
-I template di progetto del corso te li dà il docente a parte.
+### Il template di progetto del corso
+L'installazione del capitolo 4 mette anche il template di progetto del corso, con le tracce, i bus e il routing già pronti: in REAPER, *File > Project templates* → **Template_ProduzioneCinematografica**. Si apre come un progetto nuovo senza titolo: salvalo con il tuo nome nella cartella del tuo progetto. Ogni aggiornamento (capitolo 9) rimette la versione del corso: se vuoi modificarlo, salvalo come template con un altro nome.
 
 ### Le estensioni (ReaPack, SWS, Pie menu, nvk_SEARCH)
 L'installazione del capitolo 4 mette già in REAPER tutto quello che serve, senza passi a mano: **ReaPack** (il gestore dei pacchetti), **SWS/S&M** (azioni e funzioni in più usate nel corso), **js_ReaScriptAPI** e **ReaImGui** (librerie che servono agli script), **Pie3000** (il menu circolare, "pie menu") e **nvk_SEARCH** (la ricerca veloce di azioni, FX, tracce e media).
@@ -115,8 +117,8 @@ Objet a Loudness è il misuratore di loudness del kit, installato dalla riga del
 ## 9. Aggiornare e disinstallare
 
 - **Aggiornare**: rilancia la stessa riga del capitolo 4, con REAPER chiuso.
-- **Disinstallare su Mac**: cancella *OTIO to RPP* dalle Applicazioni della tua utenza, la cartella `~/Library/Application Support/REAPER/Scripts/Polywav Manager` e da `~/Library/Audio/Plug-Ins/VST3` `Objet a Loudness.vst3`, i tre `ZL ….vst3` e i quattro `Dragonfly….vst3`.
-- **Disinstallare su Windows**: cancella la cartella `%LOCALAPPDATA%\Programs\OTIO to RPP` e il collegamento nel menu Start, la cartella `%APPDATA%\REAPER\Scripts\Polywav Manager` e `Objet a Loudness.vst3` e i quattro `Dragonfly….vst3` da `C:\Program Files\Common Files\VST3`; i plugin ZL si tolgono da *Impostazioni > App* (ZL Equalizer 2, ZL Compressor, ZL Limiter).
+- **Disinstallare su Mac**: cancella *OTIO to RPP* dalle Applicazioni della tua utenza, la cartella `~/Library/Application Support/REAPER/Scripts/Polywav Manager`, il file `~/Library/Application Support/REAPER/ProjectTemplates/Template_ProduzioneCinematografica.rpp` e da `~/Library/Audio/Plug-Ins/VST3` `Objet a Loudness.vst3`, i tre `ZL ….vst3` e i quattro `Dragonfly….vst3`.
+- **Disinstallare su Windows**: cancella la cartella `%LOCALAPPDATA%\Programs\OTIO to RPP` e il collegamento nel menu Start, la cartella `%APPDATA%\REAPER\Scripts\Polywav Manager`, il file `%APPDATA%\REAPER\ProjectTemplates\Template_ProduzioneCinematografica.rpp` e `Objet a Loudness.vst3` e i quattro `Dragonfly….vst3` da `C:\Program Files\Common Files\VST3`; i plugin ZL si tolgono da *Impostazioni > App* (ZL Equalizer 2, ZL Compressor, ZL Limiter).
 
 ## 10. Problemi frequenti
 

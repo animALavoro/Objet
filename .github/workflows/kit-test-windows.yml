@@ -81,6 +81,12 @@ jobs:
             if ($hasLoudness -and -not (Test-Path (Join-Path $vst3 "Objet a Loudness.vst3"))) { Write-Host "MISSING VST3 Objet a Loudness.vst3"; $missing++ }
             if (-not $hasLoudness) { Write-Host "Objet a Loudness: not in this release yet" }
             try { Invoke-WebRequest -UseBasicParsing -Method Head -Uri "$base/Post_Produzione.ReaperConfigZip" | Out-Null } catch { Write-Host "MISSING in the release: Post_Produzione.ReaperConfigZip"; $missing++ }
+            # the course's project template, when the release has it
+            $t = "Template_ProduzioneCinematografica.rpp"
+            $hasTemplate = $true
+            try { Invoke-WebRequest -UseBasicParsing -Method Head -Uri "$base/$t" | Out-Null } catch { $hasTemplate = $false }
+            if ($hasTemplate -and -not (Test-Path (Join-Path $res "ProjectTemplates\$t"))) { Write-Host "MISSING ProjectTemplates\$t"; $missing++ }
+            if (-not $hasTemplate) { Write-Host "project template: not in this release" }
             # free plugins by other authors (ZL .msi installers, Dragonfly zip)
             Get-ChildItem -Recurse -Directory $vst3 -Filter *.vst3 | ForEach-Object { Write-Host "VST3: $($_.FullName)" }
             foreach ($n in @("ZL Equalizer 2.vst3", "ZL Compressor.vst3", "ZL Limiter.vst3", "Dragonfly*.vst3")) {

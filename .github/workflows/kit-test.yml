@@ -60,6 +60,11 @@ jobs:
               [ -d "$HOME/Library/Audio/Plug-Ins/VST3/$n" ] || { echo "::error::$n not installed"; exit 1; }
               codesign --verify --deep --strict "$HOME/Library/Audio/Plug-Ins/VST3/$n" || { echo "::error::$n: invalid signature"; exit 1; }
             done
+            # the course's project template, when the release has it (kit_test.lua opens it in REAPER)
+            t="Template_ProduzioneCinematografica.rpp"
+            if curl -fsIL -o /dev/null "$base/$t"; then
+              [ -f "$HOME/Library/Application Support/REAPER/ProjectTemplates/$t" ] || { echo "::error::$t not installed"; exit 1; }
+            else echo "project template: not in this release"; fi
           fi
           RES="$HOME/Library/Application Support/REAPER"
           mkdir -p "$RES" && cd "$RES" && unzip -o -q "$TMPDIR/cfg.zip" && rm -f reaper-configzip-info
@@ -87,7 +92,7 @@ jobs:
               end tell' >> dialogs.txt 2>&1 || true
               sleep 1
             done ) &
-          for n in 1 2 3 4 5; do
+          for n in 1 2 3 4 5 6; do
             t=0
             until [ -f "$TMPDIR/kit_phase_$n" ] || [ $t -ge 180 ]; do sleep 1; t=$((t+1)); done
             if [ ! -f "$TMPDIR/kit_phase_$n" ]; then
@@ -117,6 +122,17 @@ jobs:
                 return found
               end tell' > "shots/$n-problems.txt" 2>&1 || true
             [ -s "shots/$n-problems.txt" ] && { echo "PROBLEM in phase $n:"; cat "shots/$n-problems.txt"; }
+            # a project's missing plugins (the course template): recorded, OK to go on
+            osascript -e 'tell application "System Events" to tell process "REAPER"
+                set found to ""
+                repeat with w in (every window whose name is "Project Load Warning")
+                  try
+                    set found to found & (value of every text area of every scroll area of w as text) & linefeed
+                    click button "OK" of w
+                  end try
+                end repeat
+                return found
+              end tell' >> "shots/$n-problems.txt" 2>&1 || true
             # nvk_SEARCH's licence window (a key per person, from nvk): recorded above, cancelled to go on
             osascript -e 'tell application "System Events" to tell process "REAPER"
                 repeat with w in (every window whose name is "nvk_SEARCH")
@@ -132,6 +148,7 @@ jobs:
           t=0; while kill -0 $RP 2>/dev/null && [ $t -lt 30 ]; do sleep 1; t=$((t+1)); done
           kill $RP 2>/dev/null || true
           cp "$TMPDIR/kit_test.txt" reaper.out dialogs.txt shots/ 2>/dev/null || true
+          grep -h -i -E 'dragonfly|zl|loudness' "$HOME/Library/Application Support/REAPER"/reaper-vstplugins*.ini > shots/vstplugins.txt 2>&1 || true
           ls -R "$HOME/Library/Application Support/REAPER/UserPlugins" "$HOME/Library/Application Support/REAPER/ReaPack" > shots/files.txt 2>&1 || true
           cat shots/kit_test.txt || true
 

@@ -1,6 +1,8 @@
 -- The student kit in REAPER on a CI Mac (run by .github/workflows/kit-test.yml), after install-mac.sh and the
 -- course configuration: which extensions REAPER loaded, which scripts are registered, then each script is run and the
 -- workflow takes a screenshot (phase files $TMPDIR/kit_phase_<n>, acknowledged by $TMPDIR/kit_ack_<n>).
+-- Post-production kit: the course's project template is opened (as File > Project templates does) and every FX in it
+-- must load; before it, every plugin of the kit is put on a track by name and must load.
 -- Log in $TMPDIR/kit_test.txt. Quits REAPER at the end.
 local tmp = (os.getenv("TMPDIR") or "/tmp"):gsub("/$", "")
 local f = io.open(tmp .. "/kit_test.txt", "w")
@@ -50,10 +52,52 @@ local pw = cmd("_RSe58199659d1dd72df9f3454fa92592fb6411358d", "Polywav Manager (
 cmd("_S&M_TAKEENVSHOW1", "SWS take envelope (key T)")
 cmd("_XENAKIOS_SELFIRSTITEMSOFTRACKS", "SWS Xenakios (in Tab)")
 
+-- an FX loaded when REAPER found the plugin: a missing one stays in the chain as a placeholder with only REAPER's own
+-- 3 parameters (bypass, wet, delta)
+local function fx_check(tr, i, where)
+  local _, name = reaper.TrackFX_GetFXName(tr, i, "")
+  local np, off = reaper.TrackFX_GetNumParams(tr, i), reaper.TrackFX_GetOffline(tr, i)
+  log(((np > 3 and not off) and "ok   " or "FAIL ") .. "FX " .. name .. " (" .. where .. ", " .. np .. " parameters" .. (off and ", offline" or "") .. ")")
+  if name:find("Dragonfly") and np > 3 then   -- its settings: defaults on the kit check track, the template's in it
+    local v = {}
+    for p = 0, math.min(np - 3, 10) - 1 do
+      local _, pn = reaper.TrackFX_GetParamName(tr, i, p, "")
+      local _, s = reaper.TrackFX_GetFormattedParamValue(tr, i, p, "")
+      v[#v + 1] = pn .. "=" .. s
+    end
+    log("       " .. table.concat(v, ", "))
+  end
+end
+local TEMPLATE = res .. "/ProjectTemplates/Template_ProduzioneCinematografica.rpp"
+local KIT_FX = { "Objet a Loudness", "ZL Equalizer 2", "ZL Compressor", "ZL Limiter", "Dragonfly Hall Reverb",
+                 "Dragonfly Room Reverb", "Dragonfly Plate Reverb", "Dragonfly Early Reflections" }
+local function template_check()
+  if not exists(TEMPLATE) then log("no project template (not the post kit, or not in this release)") return end
+  -- first every plugin of the kit, by name, on a track of the test project (saved: no "save changes?" question)
+  reaper.InsertTrackAtIndex(reaper.CountTracks(0), false)
+  local kt = reaper.GetTrack(0, reaper.CountTracks(0) - 1)
+  for _, p in ipairs(KIT_FX) do
+    local i = reaper.TrackFX_AddByName(kt, "VST3:" .. p, false, -1)
+    if i < 0 then log("FAIL FX " .. p .. " (not found by REAPER)") else fx_check(kt, i, "kit check track") end
+  end
+  reaper.Main_SaveProject(0, false)
+  -- then the template, as File > Project templates opens it (a "Project Load Warning" waits for OK: the workflow
+  -- takes its screenshot, then presses OK)
+  reaper.Main_openProject("template:" .. TEMPLATE)
+  log("template: " .. reaper.CountTracks(0) .. " tracks")
+  for t = -1, reaper.CountTracks(0) - 1 do
+    local tr = t < 0 and reaper.GetMasterTrack(0) or reaper.GetTrack(0, t)
+    local _, tn = reaper.GetTrackName(tr)
+    for i = 0, reaper.TrackFX_GetCount(tr) - 1 do fx_check(tr, i, "track " .. (t + 1) .. " " .. tn) end
+  end
+  reaper.Main_SaveProjectEx(0, tmp .. "/kit_template_check.rpp", 0)   -- saved: no "save changes?" question at the end
+end
+
 local phases = {
   { "start", function() end },
   { "pie3000", function() if pie ~= 0 then reaper.Main_OnCommand(pie, 0) end end },
   { "polywav-manager", function() if pw ~= 0 then reaper.Main_OnCommand(pw, 0) end end },
+  { "project-template", template_check },
   { "nvk-search", function() if nvk ~= 0 then reaper.Main_OnCommand(nvk, 0) end end },   -- last: its licence windows
   { "later", function() end },
 }

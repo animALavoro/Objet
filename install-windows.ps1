@@ -2,7 +2,8 @@
 #   irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1 | iex
 #   & ([scriptblock]::Create((irm https://github.com/animALavoro/Objet/releases/latest/download/install-windows.ps1))) pa
 #        only Objet Pa (also: plugins = the three plugins, scene, monitor, otio, polywav = Polywav Manager script, ext = ReaPack, SWS, js_ReaScriptAPI, ReaImGui, pie menu, nvk_SEARCH); a second argument is a version (tag <part>-<version>, or suite-<version>)
-#   post = the post-production course kit: OTIO to RPP, Polywav Manager, Objet a Loudness (when the release has it) and ext;
+#   post = the post-production course kit: OTIO to RPP, Polywav Manager, Objet a Loudness (when the release has it),
+#   free plugins by other authors (thirdparty), ext and the course's project template (when the release has it);
 #   loudness = Objet a Loudness only. The post-production course's own line (its release, tag "post", where this file
 #   defaults to the post kit):
 #   irm https://github.com/animALavoro/Objet/releases/download/post/install-windows.ps1 | iex
@@ -83,6 +84,21 @@ function Install-Polywav {
     Remove-Item -Recurse -Force -ErrorAction SilentlyContinue (Join-Path $scripts "Polywav Manager")
     Copy-Item -Recurse -Force $src $scripts
     Write-Host "  installed in $scripts\Polywav Manager (action list: Polywav Manager)"
+}
+
+# the post-production course's project template, in REAPER's ProjectTemplates folder (File > Project templates);
+# skipped when the release does not have it; replaced at each update
+$Template = "Template_ProduzioneCinematografica.rpp"
+function Install-Template {
+    try { Invoke-WebRequest -UseBasicParsing -Method Head -Uri "$Base/$Template" | Out-Null } catch { Write-Host "- project template: not in this release"; return }
+    Write-Host "- project template"
+    $dir = Join-Path $env:APPDATA "REAPER\ProjectTemplates"
+    New-Item -ItemType Directory -Force $dir | Out-Null
+    $dest = Join-Path $dir $Template
+    Invoke-WebRequest -UseBasicParsing -Uri "$Base/$Template" -OutFile "$dest.part"
+    Move-Item -Force "$dest.part" $dest
+    Unblock-File $dest
+    Write-Host "  installed in $dir (File > Project templates > $($Template -replace '\.rpp$', ''))"
 }
 
 # REAPER extensions and scripts, from their own sources (not from this repository): ReaPack (from its releases), then
@@ -218,6 +234,7 @@ if ($plugins.Count -gt 0 -or $script:Msis.Count -gt 0) {
 if ($What -in @("all", "post", "otio")) { Install-Otio }
 if ($What -in @("all", "post", "polywav")) { Install-Polywav }
 if ($What -in @("all", "post", "ext"))  { Install-Ext }
+if ($What -eq "post")                   { Install-Template }
 
 Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $tmp
 Write-Host ""
