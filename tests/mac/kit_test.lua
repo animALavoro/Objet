@@ -1,6 +1,8 @@
 -- The student kit in REAPER on a CI Mac (run by .github/workflows/kit-test.yml), after install-mac.sh and the
 -- course configuration: which extensions REAPER loaded, which scripts are registered, then each script is run and the
 -- workflow takes a screenshot (phase files $TMPDIR/kit_phase_<n>, acknowledged by $TMPDIR/kit_ack_<n>).
+-- Post-production kit: the course's project template is opened (as File > Project templates does) and every FX in it
+-- must load; the kit's plugins that the template does not use are put on a track of its own and must load too.
 -- Log in $TMPDIR/kit_test.txt. Quits REAPER at the end.
 local tmp = (os.getenv("TMPDIR") or "/tmp"):gsub("/$", "")
 local f = io.open(tmp .. "/kit_test.txt", "w")
@@ -50,10 +52,37 @@ local pw = cmd("_RSe58199659d1dd72df9f3454fa92592fb6411358d", "Polywav Manager (
 cmd("_S&M_TAKEENVSHOW1", "SWS take envelope (key T)")
 cmd("_XENAKIOS_SELFIRSTITEMSOFTRACKS", "SWS Xenakios (in Tab)")
 
+-- an FX loaded when REAPER found the plugin: a missing one stays in the chain as an offline placeholder, no parameters
+local function fx_check(tr, i, where)
+  local _, name = reaper.TrackFX_GetFXName(tr, i, "")
+  local np, off = reaper.TrackFX_GetNumParams(tr, i), reaper.TrackFX_GetOffline(tr, i)
+  log(((np > 0 and not off) and "ok   " or "FAIL ") .. "FX " .. name .. " (" .. where .. ", " .. np .. " parameters" .. (off and ", offline" or "") .. ")")
+end
+local TEMPLATE = res .. "/ProjectTemplates/Template_ProduzioneCinematografica.rpp"
+local function template_check()
+  if not exists(TEMPLATE) then log("no project template (not the post kit, or not in this release)") return end
+  reaper.Main_openProject("template:" .. TEMPLATE)
+  log("template: " .. reaper.CountTracks(0) .. " tracks")
+  for t = -1, reaper.CountTracks(0) - 1 do
+    local tr = t < 0 and reaper.GetMasterTrack(0) or reaper.GetTrack(0, t)
+    local _, tn = reaper.GetTrackName(tr)
+    for i = 0, reaper.TrackFX_GetCount(tr) - 1 do fx_check(tr, i, "track " .. (t + 1) .. " " .. tn) end
+  end
+  -- the kit's other plugins, not in the template
+  reaper.InsertTrackAtIndex(reaper.CountTracks(0), false)
+  local tr = reaper.GetTrack(0, reaper.CountTracks(0) - 1)
+  for _, p in ipairs({ "ZL Compressor", "ZL Limiter", "Dragonfly Plate Reverb", "Dragonfly Early Reflections" }) do
+    local i = reaper.TrackFX_AddByName(tr, "VST3:" .. p, false, -1)
+    if i < 0 then log("FAIL FX " .. p .. " (not found by REAPER)") else fx_check(tr, i, "kit check track") end
+  end
+  reaper.Main_SaveProjectEx(0, tmp .. "/kit_template_check.rpp", 0)   -- saved: no "save changes?" question at the end
+end
+
 local phases = {
   { "start", function() end },
   { "pie3000", function() if pie ~= 0 then reaper.Main_OnCommand(pie, 0) end end },
   { "polywav-manager", function() if pw ~= 0 then reaper.Main_OnCommand(pw, 0) end end },
+  { "project-template", template_check },
   { "nvk-search", function() if nvk ~= 0 then reaper.Main_OnCommand(nvk, 0) end end },   -- last: its licence windows
   { "later", function() end },
 }

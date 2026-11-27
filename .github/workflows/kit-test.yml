@@ -60,6 +60,11 @@ jobs:
               [ -d "$HOME/Library/Audio/Plug-Ins/VST3/$n" ] || { echo "::error::$n not installed"; exit 1; }
               codesign --verify --deep --strict "$HOME/Library/Audio/Plug-Ins/VST3/$n" || { echo "::error::$n: invalid signature"; exit 1; }
             done
+            # the course's project template, when the release has it (kit_test.lua opens it in REAPER)
+            t="Template_ProduzioneCinematografica.rpp"
+            if curl -fsIL -o /dev/null "$base/$t"; then
+              [ -f "$HOME/Library/Application Support/REAPER/ProjectTemplates/$t" ] || { echo "::error::$t not installed"; exit 1; }
+            else echo "project template: not in this release"; fi
           fi
           RES="$HOME/Library/Application Support/REAPER"
           mkdir -p "$RES" && cd "$RES" && unzip -o -q "$TMPDIR/cfg.zip" && rm -f reaper-configzip-info
@@ -87,7 +92,7 @@ jobs:
               end tell' >> dialogs.txt 2>&1 || true
               sleep 1
             done ) &
-          for n in 1 2 3 4 5; do
+          for n in 1 2 3 4 5 6; do
             t=0
             until [ -f "$TMPDIR/kit_phase_$n" ] || [ $t -ge 180 ]; do sleep 1; t=$((t+1)); done
             if [ ! -f "$TMPDIR/kit_phase_$n" ]; then

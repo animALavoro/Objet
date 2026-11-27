@@ -6,7 +6,8 @@
 #                                  ext = ReaPack, SWS, js_ReaScriptAPI, ReaImGui, pie menu, nvk_SEARCH)
 #   ... | bash -s -- pa v0.2.0     a release of one plugin (tag pa-v0.2.0)
 #   ... | bash -s -- post          the post-production course kit: OTIO to RPP, Polywav Manager, Objet a Loudness
-#                                  (when the release has it), free plugins by other authors (thirdparty) and ext;
+#                                  (when the release has it), free plugins by other authors (thirdparty), ext and
+#                                  the course's project template (when the release has it);
 #                                  also loudness = Objet a Loudness only
 # The post-production course's own line (its release, tag "post", where this file defaults to the post kit):
 #   curl -fsSL https://github.com/animALavoro/Objet/releases/download/post/install-mac.sh | bash
@@ -95,6 +96,18 @@ polywav() {
   rm -rf "$SCRIPTS/Polywav Manager"
   ditto "$TMP/p/Polywav Manager" "$SCRIPTS/Polywav Manager"
   echo "  installed in $SCRIPTS/Polywav Manager (action list: Polywav Manager)"
+}
+
+# the post-production course's project template, in REAPER's ProjectTemplates folder (File > Project templates);
+# skipped when the release does not have it; replaced at each update
+TEMPLATE="Template_ProduzioneCinematografica.rpp"
+template() {
+  curl -fsIL --retry 2 -o /dev/null "$BASE/$TEMPLATE" || { echo "- project template: not in this release"; return 0; }
+  echo "- project template"
+  mkdir -p "$RESOURCE/ProjectTemplates"
+  curl -fsSL --retry 3 -o "$TMP/template.rpp" "$BASE/$TEMPLATE" || { echo "  download failed: $BASE/$TEMPLATE"; exit 1; }
+  mv "$TMP/template.rpp" "$RESOURCE/ProjectTemplates/$TEMPLATE"
+  echo "  installed in $RESOURCE/ProjectTemplates (File > Project templates > ${TEMPLATE%.rpp})"
 }
 
 # REAPER extensions and scripts, from their own sources (not from this repository): ReaPack (from its releases), then
@@ -199,7 +212,8 @@ case "$WHAT" in
            polywav
            optional_plugin Objet-a-Loudness-macOS.zip "Objet a Loudness.vst3" "Objet a Loudness"
            thirdparty
-           ext ;;
+           ext
+           template ;;
   thirdparty) thirdparty ;;
   loudness) plugin Objet-a-Loudness-macOS.zip "Objet a Loudness.vst3" "Objet a Loudness" ;;
 esac
