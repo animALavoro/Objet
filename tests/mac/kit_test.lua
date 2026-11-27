@@ -52,11 +52,12 @@ local pw = cmd("_RSe58199659d1dd72df9f3454fa92592fb6411358d", "Polywav Manager (
 cmd("_S&M_TAKEENVSHOW1", "SWS take envelope (key T)")
 cmd("_XENAKIOS_SELFIRSTITEMSOFTRACKS", "SWS Xenakios (in Tab)")
 
--- an FX loaded when REAPER found the plugin: a missing one stays in the chain as an offline placeholder, no parameters
+-- an FX loaded when REAPER found the plugin: a missing one stays in the chain as a placeholder with only REAPER's own
+-- 3 parameters (bypass, wet, delta)
 local function fx_check(tr, i, where)
   local _, name = reaper.TrackFX_GetFXName(tr, i, "")
   local np, off = reaper.TrackFX_GetNumParams(tr, i), reaper.TrackFX_GetOffline(tr, i)
-  log(((np > 0 and not off) and "ok   " or "FAIL ") .. "FX " .. name .. " (" .. where .. ", " .. np .. " parameters" .. (off and ", offline" or "") .. ")")
+  log(((np > 3 and not off) and "ok   " or "FAIL ") .. "FX " .. name .. " (" .. where .. ", " .. np .. " parameters" .. (off and ", offline" or "") .. ")")
 end
 local TEMPLATE = res .. "/ProjectTemplates/Template_ProduzioneCinematografica.rpp"
 local KIT_FX = { "Objet a Loudness", "ZL Equalizer 2", "ZL Compressor", "ZL Limiter", "Dragonfly Hall Reverb",
