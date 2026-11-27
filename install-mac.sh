@@ -99,13 +99,16 @@ polywav() {
 }
 
 # the post-production course's project template, in REAPER's ProjectTemplates folder (File > Project templates);
-# skipped when the release does not have it; replaced at each update
+# skipped when the release does not have it; replaced at each update. The release's macOS copy (NAME-mac.rpp, with
+# Dragonfly Reverb's macOS IDs: tools/mac_template.py) is installed under the template's own name.
 TEMPLATE="Template_ProduzioneCinematografica.rpp"
 template() {
-  curl -fsIL --retry 2 -o /dev/null "$BASE/$TEMPLATE" || { echo "- project template: not in this release"; return 0; }
+  local src="${TEMPLATE%.rpp}-mac.rpp"
+  curl -fsIL --retry 2 -o /dev/null "$BASE/$src" || src="$TEMPLATE"
+  curl -fsIL --retry 2 -o /dev/null "$BASE/$src" || { echo "- project template: not in this release"; return 0; }
   echo "- project template"
   mkdir -p "$RESOURCE/ProjectTemplates"
-  curl -fsSL --retry 3 -o "$TMP/template.rpp" "$BASE/$TEMPLATE" || { echo "  download failed: $BASE/$TEMPLATE"; exit 1; }
+  curl -fsSL --retry 3 -o "$TMP/template.rpp" "$BASE/$src" || { echo "  download failed: $BASE/$src"; exit 1; }
   mv "$TMP/template.rpp" "$RESOURCE/ProjectTemplates/$TEMPLATE"
   echo "  installed in $RESOURCE/ProjectTemplates (File > Project templates > ${TEMPLATE%.rpp})"
 }

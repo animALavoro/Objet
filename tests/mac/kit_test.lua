@@ -58,6 +58,15 @@ local function fx_check(tr, i, where)
   local _, name = reaper.TrackFX_GetFXName(tr, i, "")
   local np, off = reaper.TrackFX_GetNumParams(tr, i), reaper.TrackFX_GetOffline(tr, i)
   log(((np > 3 and not off) and "ok   " or "FAIL ") .. "FX " .. name .. " (" .. where .. ", " .. np .. " parameters" .. (off and ", offline" or "") .. ")")
+  if name:find("Dragonfly") and np > 3 then   -- its settings: defaults on the kit check track, the template's in it
+    local v = {}
+    for p = 0, math.min(np - 3, 10) - 1 do
+      local _, pn = reaper.TrackFX_GetParamName(tr, i, p, "")
+      local _, s = reaper.TrackFX_GetFormattedParamValue(tr, i, p, "")
+      v[#v + 1] = pn .. "=" .. s
+    end
+    log("       " .. table.concat(v, ", "))
+  end
 end
 local TEMPLATE = res .. "/ProjectTemplates/Template_ProduzioneCinematografica.rpp"
 local KIT_FX = { "Objet a Loudness", "ZL Equalizer 2", "ZL Compressor", "ZL Limiter", "Dragonfly Hall Reverb",
