@@ -1,0 +1,66 @@
+13:40:47 REAPER 7.86/macOS-arm64, resource /Users/runner/Library/Application Support/REAPER
+13:40:47 config env_reduce = 1039
+13:40:47 config splitautoxfade = 262177
+13:40:47 config itemicons = 4415
+13:40:47 config itemvolmode = 1
+13:40:47 config labelitems2 = 15
+13:40:47 config video_decprio = vlc avfoundation ffmpeg qt:mov,qt,m4v,mp4
+13:40:47 ini [reaper] video_decprio=vlc avfoundation ffmpeg qt:mov,qt,m4v,mp4
+13:40:47 ini [reaper_video] fx_mode=2
+13:40:47 ok   API CF_GetSWSVersion
+13:40:47 ok   API JS_ReaScriptAPI_Version
+13:40:47 ok   API ImGui_GetBuiltinPath
+13:40:47 ok   API ReaPack_BrowsePackages
+13:40:47 SWS 2.14.0.7
+13:40:47 js 1.31
+13:40:47 ImGui 1.92.1
+13:40:47 ok   Scripts/ReaTeam Extensions/API/imgui.lua
+13:40:47 ok   Scripts/Sexan_Scripts/Pie3000/Sexan_Pie3000.lua
+13:40:47 ok   Scripts/nvk-ReaScripts/SEARCH/nvk_SEARCH.lua
+13:40:47 ok   Scripts/nvk-ReaScripts/SHARED/nvk_SHARED.lua
+13:40:47 ok   Scripts/Polywav Manager/Polywav Manager.lua
+13:40:47 ok   Scripts/Sexan_Scripts/Pie3000/pie_file.txt
+13:40:47 ok   action Pie3000 (key C) (_RS2039f6a463e791b26b83664161168a2f34203c16) = 55826
+13:40:47 ok   action nvk_SEARCH (key *) (_RS42ab70fd2ac65e9a003787709bb85f18c36dee52) = 55825
+13:40:47 ok   action Polywav Manager (from the course configuration) (_RSe58199659d1dd72df9f3454fa92592fb6411358d) = 55827
+13:40:47 ok   action SWS take envelope (key T) (_S&M_TAKEENVSHOW1) = 55200
+13:40:47 ok   action SWS Xenakios (in Tab) (_XENAKIOS_SELFIRSTITEMSOFTRACKS) = 53249
+13:40:53 phase 1 start
+13:41:05 phase 2 pie3000
+13:41:16 phase 3 polywav-manager
+13:41:27 phase 4 project-template
+13:41:27 ok   FX VST3: Objet a Loudness (Luca Bagetto) (kit check track, 5 parameters)
+13:41:27 ok   FX VST3: ZL Equalizer 2 (ZL) (kit check track, 614 parameters)
+13:41:27 ok   FX VST3: ZL Compressor (ZL) (kit check track, 86 parameters)
+13:41:27 ok   FX VST3: ZL Limiter (ZL) (kit check track, 18 parameters)
+13:41:27 ok   FX VST3: Dragonfly Hall Reverb (Michael Willis and Rob vd Berg) (kit check track, 23 parameters)
+13:41:27        Buffer Size=1024, Sample Rate=44100.000000, Dry Level=80.000000, Early Level=10.000000, Late Level=20.000000, Size=24.000000, Width=100.000000, Predelay=4.000000, Diffuse=90.000000, Low Cut=4.000000
+13:41:27 ok   FX VST3: Dragonfly Room Reverb (Michael Willis) (kit check track, 22 parameters)
+13:41:27        Buffer Size=1024, Sample Rate=44100.000000, Dry Level=80.000000, Early Level=10.000000, Early Send=20.000000, Late Level=20.000000, Size=12.000000, Width=100.000000, Predelay=8.000000, Decay=0.400000
+13:41:27 ok   FX VST3: Dragonfly Plate Reverb (Michael Willis) (kit check track, 14 parameters)
+13:41:27        Buffer Size=1024, Sample Rate=44100.000000, Dry Level=80.000000, Wet Level=20.000000, Algorithm=Nested, Width=100.000000, Predelay=0.000000, Decay=0.400000, Low Cut=200.000000, High Cut=16000.000000
+13:41:27 ok   FX VST3: Dragonfly Early Reflections (Michael Willis) (kit check track, 12 parameters)
+13:41:27        Buffer Size=1024, Sample Rate=44100.000000, Dry Level=80.000000, Wet Level=20.000000, Program=Concert Venue, Size=20.000000, Width=100.000000, Low Cut=50.000000, High Cut=10000.000000
+13:41:32 template: 73 tracks
+13:41:32 ok   FX VST3: ZL Limiter (ZL) (track 2  MASTER , 18 parameters)
+13:41:32 ok   FX VST3: Objet a Loudness (Luca Bagetto) (track 2  MASTER , 5 parameters)
+13:41:32 ok   FX VST3: ZL Limiter (ZL) (track 4 DIALOG MASTER, 18 parameters)
+13:41:32 ok   FX VST3: ZL Equalizer 2 (ZL) (track 18 FUZ 1, 614 parameters)
+13:41:32 ok   FX VST3: ZL Limiter (ZL) (track 19 PRESA, 18 parameters)
+13:41:32 ok   FX VST3: ZL Limiter (ZL) (track 32 SFX MASTER, 18 parameters)
+13:41:32 ok   FX VST3: ZL Limiter (ZL) (track 41 FOLEY MASTER, 18 parameters)
+13:41:32 ok   FX VST3: ZL Limiter (ZL) (track 50 AMBIENCE MASTER, 18 parameters)
+13:41:32 ok   FX VST3: Dragonfly Room Reverb (Michael Willis) (track 68 DIAL REV 1, 22 parameters)
+13:41:32        Buffer Size=512, Sample Rate=48000.000000, Dry Level=0.000000, Early Level=10.000000, Early Send=20.000000, Late Level=20.000000, Size=8.000000, Width=90.000000, Predelay=4.000000, Decay=0.200000
+13:41:32 ok   FX VST3: Dragonfly Hall Reverb (Michael Willis and Rob vd Berg) (track 69 DIAL REV 2, 23 parameters)
+13:41:32        Buffer Size=512, Sample Rate=48000.000000, Dry Level=0.000000, Early Level=10.000000, Late Level=20.000000, Size=24.000000, Width=50.000000, Predelay=4.000000, Diffuse=90.000000, Low Cut=4.000000
+13:41:32 ok   FX VST3: Dragonfly Room Reverb (Michael Willis) (track 70 FX REV , 22 parameters)
+13:41:32        Buffer Size=512, Sample Rate=48000.000000, Dry Level=0.000000, Early Level=10.000000, Early Send=20.000000, Late Level=20.000000, Size=8.000000, Width=90.000000, Predelay=4.000000, Decay=0.200000
+13:41:32 ok   FX VST3: Dragonfly Hall Reverb (Michael Willis and Rob vd Berg) (track 71 FX REV 2, 23 parameters)
+13:41:32        Buffer Size=512, Sample Rate=48000.000000, Dry Level=0.000000, Early Level=10.000000, Late Level=20.000000, Size=24.000000, Width=50.000000, Predelay=4.000000, Diffuse=90.000000, Low Cut=4.000000
+13:41:32 ok   FX VST3: Dragonfly Hall Reverb (Michael Willis and Rob vd Berg) (track 72 CIN REV, 23 parameters)
+13:41:32        Buffer Size=512, Sample Rate=48000.000000, Dry Level=0.000000, Early Level=10.000000, Late Level=20.000000, Size=50.000000, Width=90.000000, Predelay=20.000000, Diffuse=95.000000, Low Cut=4.000000
+13:41:32 FAIL FX VST3: RX 10 Monitor (iZotope) (track 73 Monitor RX, 3 parameters)
+13:41:38 phase 5 nvk-search
+13:41:53 phase 6 later
+13:42:04 done

@@ -1,0 +1,5 @@
+
+The following effects were in the project file and are not available. REAPER will keep their configurations, but things may not sound as desired.
+	Track 73: VST3: RX 10 Monitor (iZotope)
+
+
